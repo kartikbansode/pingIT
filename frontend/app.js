@@ -49,13 +49,14 @@ ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
   console.log("📨 WS:", data);
 
-  // 🔹 Sender receives join → create offer
+  // ignore other rooms
+  if (data.roomId !== roomId) return;
+
   if (data.type === "join" && isSender) {
     log("📥 Receiver joined. Creating offer...");
     await makeOffer();
   }
 
-  // 🔹 Receiver receives offer → answer
   if (data.type === "offer" && !isSender) {
     log("📨 Offer received");
     await createPeer();
@@ -65,17 +66,16 @@ ws.onmessage = async (msg) => {
     ws.send(JSON.stringify({ type: "answer", answer, roomId }));
   }
 
-  // 🔹 Sender receives answer
   if (data.type === "answer" && isSender) {
     log("📨 Answer received");
     await pc.setRemoteDescription(data.answer);
   }
 
-  // 🔹 ICE exchange
   if (data.type === "ice" && pc) {
     await pc.addIceCandidate(data.candidate);
   }
 };
+
 
 // ---- WebRTC ----
 async function createPeer() {
