@@ -8,7 +8,9 @@ wss.on("connection", ws => {
     const data = JSON.parse(msg);
     const room = data.roomId;
 
-    if (!rooms[room]) rooms[room] = [];
+    if (!room) return;
+
+    rooms[room] = rooms[room] || [];
     if (!rooms[room].includes(ws)) rooms[room].push(ws);
 
     rooms[room].forEach(client => {
@@ -25,4 +27,4 @@ wss.on("connection", ws => {
   });
 });
 
-console.log("pingIT signaling server running");
+console.log("🚀 pingIT signaling server running");
