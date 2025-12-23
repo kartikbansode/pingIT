@@ -1,6 +1,12 @@
+import http from "http";
 import { WebSocketServer } from "ws";
 
-const wss = new WebSocketServer({ port: process.env.PORT || 3000 });
+const server = http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("pingIT signaling server running");
+});
+
+const wss = new WebSocketServer({ server });
 const rooms = {};
 
 wss.on("connection", ws => {
@@ -26,4 +32,7 @@ wss.on("connection", ws => {
   });
 });
 
-console.log("🚀 pingIT signaling server running");
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 pingIT signaling server running on ${PORT}`);
+});
