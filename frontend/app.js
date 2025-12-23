@@ -1,4 +1,4 @@
-console.log("🔥 pingIT app.js loaded");
+console.log("pingIT loaded");
 
 const WS_URL = "wss://pingit-xyf7.onrender.com";
 const ws = new WebSocket(WS_URL);
@@ -90,7 +90,7 @@ function handleFiles(list) {
 
 // ---------- WebSocket ----------
 ws.onopen = () => {
-  log("✅ Connected");
+  log("READY");
   createBtn.disabled = false;
   joinBtn.disabled = false;
 };
@@ -186,19 +186,19 @@ createBtn.onclick = async () => {
 
   await createPeer();
   ws.send(JSON.stringify({ type: "join", roomId }));
-  log("🟢 Room created");
+  log("READY TO SEND");
 };
 
 joinBtn.onclick = () => {
   roomId = document.getElementById("roomInput").value.trim().toUpperCase();
   if (!roomId) return alert("Enter room code");
   ws.send(JSON.stringify({ type: "join", roomId }));
-  log("📤 Joining...");
+  log("CONNECTING...");
 };
 
 copyBtn.onclick = () => {
   navigator.clipboard.writeText(roomIdSpan.textContent);
-  alert("Room code copied!");
+  alert("Code copied!");
 };
 
 // ---------- Auto join from QR ----------
@@ -217,7 +217,7 @@ async function sendFiles() {
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
-  log("✅ Files sent");
+  log("ALL FILES SENT");
 }
 
 function sendOneFile(file) {
@@ -255,7 +255,7 @@ function setupReceiver() {
         currentFile = msg;
         buffers = [];
         received = 0;
-        log(`📥 Receiving ${msg.name}`);
+        log(`PLEASE WAIT... Receiving ${msg.name}`);
       }
       return;
     }
@@ -297,6 +297,6 @@ downloadAllBtn.onclick = async () => {
 
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "pingIT-files.zip";
+  a.download = "pingIT.zip";
   a.click();
 };
