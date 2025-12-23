@@ -1,0 +1,12 @@
+{
+  "name": "pingit-signal",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.15.0"
+  }
+}
