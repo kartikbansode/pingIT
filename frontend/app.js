@@ -19,6 +19,12 @@ const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
 const progress = document.getElementById("progress");
 const status = document.getElementById("status");
+const dropZone = document.getElementById("dropZone");
+const downloadAllBtn = document.getElementById("downloadAllBtn");
+
+let sendStats = {};
+let recvFiles = [];
+let startTime = 0;
 
 function log(m) {
   console.log(m);
@@ -87,7 +93,7 @@ ws.onmessage = async (msg) => {
 // ---------- WebRTC ----------
 async function createPeer() {
   pc = new RTCPeerConnection({
-     iceServers: [
+    iceServers: [
       {
         urls: "stun:stun.relay.metered.ca:80",
       },
@@ -111,7 +117,7 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-  ],
+    ],
   });
 
   pc.onicecandidate = (e) => {
@@ -172,6 +178,9 @@ createBtn.onclick = async () => {
   await createPeer();
   ws.send(JSON.stringify({ type: "join", roomId }));
 
+  document.getElementById("qr").innerHTML = "";
+  new QRCode(document.getElementById("qr"), roomId);
+
   log("🟢 Room created. Waiting for receiver...");
 };
 
@@ -190,6 +199,8 @@ copyBtn.onclick = () => {
 
 // ---------- File Send Protocol ----------
 async function sendFiles() {
+  startTime = Date.now();
+
   for (const file of filesToSend) {
     // send meta
     channel.send(
@@ -210,7 +221,21 @@ function sendOneFile(file) {
     reader.onload = (e) => {
       channel.send(e.target.result);
       offset += e.target.result.byteLength;
-      progress.value = (offset / file.size) * 100;
+
+      sendStats[file.name].sent = offset;
+      const percent = (offset / file.size) * 100;
+      document.querySelector(`#send-${file.name} span`).style.width =
+        percent + "%";
+
+      const elapsed = (Date.now() - startTime) / 1000;
+      const speed = offset / elapsed; // bytes/sec
+      const eta = (file.size - offset) / speed;
+
+      status.textContent = `Sending ${file.name} • ${(
+        speed /
+        1024 /
+        1024
+      ).toFixed(2)} MB/s • ETA ${eta.toFixed(1)}s`;
 
       if (offset < file.size) readSlice(offset);
       else resolve();
@@ -255,17 +280,68 @@ function setupReceiver() {
       const blob = new Blob(buffers);
       const url = URL.createObjectURL(blob);
 
-      const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = currentFile.name;
-      a.textContent = currentFile.name;
+      recvFiles.push({ name: currentFile.name, blob });
 
-      li.appendChild(a);
+      const li = document.createElement("li");
+      li.innerHTML = `
+    ${currentFile.name}
+    <button>Download</button>
+  `;
+      li.querySelector("button").onclick = () => {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = currentFile.name;
+        a.click();
+      };
+
       recvList.appendChild(li);
+      downloadAllBtn.classList.remove("hidden");
 
       log(`✅ Received ${currentFile.name}`);
       currentFile = null;
     }
   };
 }
+
+dropZone.onclick = () => fileInput.click();
+
+dropZone.ondragover = (e) => {
+  e.preventDefault();
+  dropZone.classList.add("drag");
+};
+dropZone.ondragleave = () => dropZone.classList.remove("drag");
+dropZone.ondrop = (e) => {
+  e.preventDefault();
+  dropZone.classList.remove("drag");
+  handleFiles(e.dataTransfer.files);
+};
+
+fileInput.onchange = () => handleFiles(fileInput.files);
+
+function handleFiles(fileList) {
+  filesToSend = Array.from(fileList);
+  sendList.innerHTML = "";
+  filesToSend.forEach((f) => {
+    sendStats[f.name] = { sent: 0, size: f.size };
+
+    const li = document.createElement("li");
+    li.id = `send-${f.name}`;
+    li.innerHTML = `
+      ${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)
+      <div class="progress-bar"><span></span></div>
+    `;
+    sendList.appendChild(li);
+  });
+}
+
+downloadAllBtn.onclick = async () => {
+  const zip = new JSZip();
+  recvFiles.forEach(f => zip.file(f.name, f.blob));
+  const blob = await zip.generateAsync({ type: "blob" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "pingIT-files.zip";
+  a.click();
+};
+

@@ -8,13 +8,12 @@ body {
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 
 .app {
   width: 100%;
   max-width: 420px;
-  padding: 20px;
+  padding: 16px;
   text-align: center;
 }
 
@@ -65,11 +64,36 @@ ul {
 li {
   background: #0f172a;
   margin-bottom: 6px;
-  padding: 6px 8px;
+  padding: 8px;
   border-radius: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #1e293b;
+  border-radius: 4px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.progress-bar span {
+  display: block;
+  height: 100%;
+  background: #22c55e;
+  width: 0%;
+}
+
+.drop-zone {
+  border: 2px dashed #334155;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.drop-zone.drag {
+  background: #0f172a;
+  border-color: #22c55e;
 }
 
 .room-box {
@@ -77,18 +101,9 @@ li {
   background: #0f172a;
   padding: 8px;
   border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .hidden { display: none; }
-
-progress {
-  width: 100%;
-  height: 14px;
-  margin-top: 10px;
-}
 
 #status {
   margin-top: 6px;
