@@ -7,7 +7,6 @@ wss.on("connection", ws => {
   ws.on("message", msg => {
     const data = JSON.parse(msg);
     const room = data.roomId;
-
     if (!room) return;
 
     rooms[room] = rooms[room] || [];

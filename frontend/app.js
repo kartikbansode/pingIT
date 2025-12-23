@@ -1,51 +1,48 @@
 const WS_URL = "wss://pingit-xyf7.onrender.com";
 const ws = new WebSocket(WS_URL);
 
-let pc;
-let channel;
-let file;
-let roomId;
+let pc, channel, file, roomId;
 let isSender = false;
 
 const fileInput = document.getElementById("fileInput");
 const createBtn = document.getElementById("createBtn");
 const joinBtn = document.getElementById("joinBtn");
-const roomDisplay = document.getElementById("roomDisplay");
+const roomBox = document.getElementById("roomBox");
+const roomIdSpan = document.getElementById("roomId");
+const copyBtn = document.getElementById("copyBtn");
 const progress = document.getElementById("progress");
 const status = document.getElementById("status");
 
-const CHUNK = 64 * 1024;
-
-// 🔹 Utils
-function genRoomId(len = 6) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let out = "";
-  for (let i = 0; i < len; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return out;
-}
-
+// ---------- Helpers ----------
 function log(msg) {
   console.log(msg);
   status.textContent = msg;
 }
 
-// 🔹 WebSocket
-ws.onopen = () => log("✅ Connected to signaling server");
-ws.onerror = e => log("❌ WebSocket error");
+function genRoomId(len = 6) {
+  const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
+}
+
+// ---------- WebSocket ----------
+ws.onopen = () => {
+  log("✅ Connected to server");
+  createBtn.disabled = false;
+  joinBtn.disabled = false;
+};
+
+ws.onerror = () => log("❌ WebSocket error");
 ws.onclose = () => log("❌ WebSocket closed");
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
+  log(`📨 ${data.type} received`);
 
   if (data.type === "join" && isSender) {
-    log("📥 Receiver joined. Creating offer...");
     await makeOffer();
   }
 
   if (data.type === "offer" && !isSender) {
-    log("📨 Offer received");
     await createPeer();
     await pc.setRemoteDescription(data.offer);
     const answer = await pc.createAnswer();
@@ -54,16 +51,15 @@ ws.onmessage = async (msg) => {
   }
 
   if (data.type === "answer" && isSender) {
-    log("📨 Answer received");
     await pc.setRemoteDescription(data.answer);
   }
 
-  if (data.type === "ice") {
-    if (pc) await pc.addIceCandidate(data.candidate);
+  if (data.type === "ice" && pc) {
+    await pc.addIceCandidate(data.candidate);
   }
 };
 
-// 🔹 Peer
+// ---------- Peer ----------
 async function createPeer() {
   pc = new RTCPeerConnection({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
@@ -86,7 +82,7 @@ async function makeOffer() {
   channel.binaryType = "arraybuffer";
 
   channel.onopen = () => {
-    log("🚀 Data channel open. Sending file...");
+    log("🚀 Channel open. Sending file...");
     sendFile();
   };
 
@@ -96,39 +92,41 @@ async function makeOffer() {
   ws.send(JSON.stringify({ type: "offer", offer, roomId }));
 }
 
-// 🔹 UI Actions
+// ---------- UI ----------
 createBtn.onclick = async () => {
-  if (ws.readyState !== WebSocket.OPEN) {
-    alert("WebSocket not connected yet.");
-    return;
-  }
+  log("🟡 Create clicked");
 
   file = fileInput.files[0];
   if (!file) return alert("Select a file first!");
 
   isSender = true;
   roomId = genRoomId();
-  roomDisplay.textContent = `Room ID: ${roomId}`;
+
+  roomIdSpan.textContent = roomId;
+  roomBox.classList.remove("hidden");
 
   await createPeer();
   log("🟢 Room created. Share Room ID.");
 };
 
 joinBtn.onclick = () => {
-  if (ws.readyState !== WebSocket.OPEN) {
-    alert("WebSocket not connected yet.");
-    return;
-  }
+  log("🟡 Join clicked");
 
   roomId = document.getElementById("roomInput").value.trim();
   if (!roomId) return alert("Enter Room ID");
 
   ws.send(JSON.stringify({ type: "join", roomId }));
-  log("📤 Join request sent...");
+  log("📤 Join request sent");
 };
 
-// 🔹 Send
+copyBtn.onclick = () => {
+  navigator.clipboard.writeText(roomIdSpan.textContent);
+  alert("Room ID copied!");
+};
+
+// ---------- Send ----------
 function sendFile() {
+  const CHUNK = 64 * 1024;
   let offset = 0;
   const reader = new FileReader();
 
@@ -137,8 +135,9 @@ function sendFile() {
     offset += e.target.result.byteLength;
     progress.value = (offset / file.size) * 100;
 
-    if (offset < file.size) readSlice(offset);
-    else {
+    if (offset < file.size) {
+      readSlice(offset);
+    } else {
       channel.close();
       log("✅ File sent!");
     }
@@ -152,16 +151,11 @@ function sendFile() {
   readSlice(0);
 }
 
-// 🔹 Receive
+// ---------- Receive ----------
 function setupReceiver() {
   let buffers = [];
-  let size = 0;
 
-  channel.onmessage = e => {
-    buffers.push(e.data);
-    size += e.data.byteLength;
-    progress.value += 0.5;
-  };
+  channel.onmessage = e => buffers.push(e.data);
 
   channel.onclose = () => {
     const blob = new Blob(buffers);

@@ -2,29 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>pingIT – P2P File Share</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>pingIT – Share Files P2P</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="card">
+  <div class="app">
     <h1>🚀 pingIT</h1>
-    <p>Direct peer-to-peer file sharing</p>
+    <p class="tagline">Fast peer-to-peer file sharing</p>
 
-    <div class="box">
-      <h2>Send</h2>
-      <input type="file" id="fileInput" />
-      <button id="createBtn">Create Room</button>
-      <p id="roomDisplay"></p>
+    <div class="card">
+      <h2>📤 Send File</h2>
+      <input type="file" id="fileInput"/>
+      <button id="createBtn" disabled>Create Room</button>
+      <div id="roomBox" class="room-box hidden">
+        Room ID:
+        <span id="roomId"></span>
+        <button id="copyBtn">Copy</button>
+      </div>
     </div>
 
-    <div class="box">
-      <h2>Receive</h2>
-      <input id="roomInput" placeholder="Enter Room ID" />
-      <button id="joinBtn">Join Room</button>
+    <div class="card">
+      <h2>📥 Receive File</h2>
+      <input id="roomInput" placeholder="Enter Room ID"/>
+      <button id="joinBtn" disabled>Join Room</button>
     </div>
 
     <progress id="progress" value="0" max="100"></progress>
-    <p id="status"></p>
+    <p id="status">Connecting...</p>
   </div>
 
   <script src="app.js"></script>
