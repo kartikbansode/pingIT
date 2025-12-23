@@ -8,8 +8,13 @@ let filesToSend = [];
 let roomId = "";
 let isSender = false;
 
-// UI
+let sendStats = {};
+let recvFiles = [];
+let startTime = 0;
+
+// ---- UI ----
 const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
 const sendList = document.getElementById("sendList");
 const recvList = document.getElementById("recvList");
 const createBtn = document.getElementById("createBtn");
@@ -17,14 +22,8 @@ const joinBtn = document.getElementById("joinBtn");
 const roomBox = document.getElementById("roomBox");
 const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
-const progress = document.getElementById("progress");
-const status = document.getElementById("status");
-const dropZone = document.getElementById("dropZone");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
-
-let sendStats = {};
-let recvFiles = [];
-let startTime = 0;
+const status = document.getElementById("status");
 
 function log(m) {
   console.log(m);
@@ -32,23 +31,46 @@ function log(m) {
 }
 
 function genRoomId(len = 6) {
-  const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   return Array.from(
     { length: len },
     () => c[Math.floor(Math.random() * c.length)]
   ).join("");
 }
 
-// ---------- UI ----------
-fileInput.onchange = () => {
-  filesToSend = Array.from(fileInput.files);
+// ---------- Drag & Drop ----------
+dropZone.onclick = () => fileInput.click();
+
+dropZone.ondragover = (e) => {
+  e.preventDefault();
+  dropZone.classList.add("drag");
+};
+dropZone.ondragleave = () => dropZone.classList.remove("drag");
+dropZone.ondrop = (e) => {
+  e.preventDefault();
+  dropZone.classList.remove("drag");
+  handleFiles(e.dataTransfer.files);
+};
+
+fileInput.onchange = () => handleFiles(fileInput.files);
+
+function handleFiles(list) {
+  filesToSend = Array.from(list);
+  sendStats = {};
   sendList.innerHTML = "";
+
   filesToSend.forEach((f) => {
+    sendStats[f.name] = { sent: 0, size: f.size };
+
     const li = document.createElement("li");
-    li.textContent = `${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)`;
+    li.id = `send-${f.name}`;
+    li.innerHTML = `
+      <div>${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)</div>
+      <div class="progress-bar"><span></span></div>
+    `;
     sendList.appendChild(li);
   });
-};
+}
 
 // ---------- WebSocket ----------
 ws.onopen = () => {
@@ -58,12 +80,11 @@ ws.onopen = () => {
 };
 
 ws.onclose = () => log("ℹ️ Signaling closed");
-ws.onerror = (e) => console.error(e);
+ws.onerror = (e) => console.error("WS error", e);
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
   if (data.roomId !== roomId) return;
-
   console.log("📨 WS:", data);
 
   if (data.type === "join" && isSender) {
@@ -123,28 +144,22 @@ async function createPeer() {
   pc.onicecandidate = (e) => {
     if (e.candidate) {
       console.log("🧊 Local ICE:", e.candidate.candidate);
-      ws.send(
-        JSON.stringify({
-          type: "ice",
-          candidate: e.candidate,
-          roomId,
-        })
-      );
+      ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
     }
   };
 
   pc.oniceconnectionstatechange = () => {
-    log("🧊 ICE state: " + pc.iceConnectionState);
+    log("🧊 ICE: " + pc.iceConnectionState);
   };
 
   pc.onconnectionstatechange = () => {
-    log("🔗 Connection: " + pc.connectionState);
+    log("🔗 Conn: " + pc.connectionState);
   };
 
   pc.ondatachannel = (e) => {
     channel = e.channel;
     channel.binaryType = "arraybuffer";
-    log("📡 Data channel received");
+    log("📡 Data channel ready");
     setupReceiver();
   };
 }
@@ -154,11 +169,12 @@ async function makeOffer() {
   channel.binaryType = "arraybuffer";
 
   channel.onopen = () => {
-    log("🚀 Data channel open. Sending files...");
+    log("🚀 Channel open. Sending files...");
+    startTime = Date.now();
     sendFiles();
   };
 
-  channel.onclose = () => log("📴 Data channel closed");
+  channel.onclose = () => log("📴 Channel closed");
   channel.onerror = (e) => console.error("Channel error", e);
 
   const offer = await pc.createOffer();
@@ -175,12 +191,11 @@ createBtn.onclick = async () => {
   roomIdSpan.textContent = roomId;
   roomBox.classList.remove("hidden");
 
-  await createPeer();
-  ws.send(JSON.stringify({ type: "join", roomId }));
-
   document.getElementById("qr").innerHTML = "";
   new QRCode(document.getElementById("qr"), roomId);
 
+  await createPeer();
+  ws.send(JSON.stringify({ type: "join", roomId }));
   log("🟢 Room created. Waiting for receiver...");
 };
 
@@ -197,12 +212,9 @@ copyBtn.onclick = () => {
   alert("Room ID copied!");
 };
 
-// ---------- File Send Protocol ----------
+// ---------- File Send ----------
 async function sendFiles() {
-  startTime = Date.now();
-
   for (const file of filesToSend) {
-    // send meta
     channel.send(
       JSON.stringify({ meta: true, name: file.name, size: file.size })
     );
@@ -224,11 +236,12 @@ function sendOneFile(file) {
 
       sendStats[file.name].sent = offset;
       const percent = (offset / file.size) * 100;
-      document.querySelector(`#send-${file.name} span`).style.width =
-        percent + "%";
+      document.querySelector(
+        `#send-${CSS.escape(file.name)} span`
+      ).style.width = percent + "%";
 
       const elapsed = (Date.now() - startTime) / 1000;
-      const speed = offset / elapsed; // bytes/sec
+      const speed = offset / elapsed;
       const eta = (file.size - offset) / speed;
 
       status.textContent = `Sending ${file.name} • ${(
@@ -267,9 +280,7 @@ function setupReceiver() {
         log(`📥 Receiving ${msg.name}`);
       }
 
-      if (msg.done) {
-        log("✅ All files received");
-      }
+      if (msg.done) log("✅ All files received");
       return;
     }
 
@@ -283,60 +294,31 @@ function setupReceiver() {
       recvFiles.push({ name: currentFile.name, blob });
 
       const li = document.createElement("li");
-      li.innerHTML = `
-    ${currentFile.name}
-    <button>Download</button>
-  `;
-      li.querySelector("button").onclick = () => {
+      const btn = document.createElement("button");
+      btn.textContent = "Download";
+
+      btn.onclick = () => {
         const a = document.createElement("a");
         a.href = url;
         a.download = currentFile.name;
         a.click();
       };
 
+      li.textContent = currentFile.name + " ";
+      li.appendChild(btn);
       recvList.appendChild(li);
-      downloadAllBtn.classList.remove("hidden");
 
+      downloadAllBtn.classList.remove("hidden");
       log(`✅ Received ${currentFile.name}`);
       currentFile = null;
     }
   };
 }
 
-dropZone.onclick = () => fileInput.click();
-
-dropZone.ondragover = (e) => {
-  e.preventDefault();
-  dropZone.classList.add("drag");
-};
-dropZone.ondragleave = () => dropZone.classList.remove("drag");
-dropZone.ondrop = (e) => {
-  e.preventDefault();
-  dropZone.classList.remove("drag");
-  handleFiles(e.dataTransfer.files);
-};
-
-fileInput.onchange = () => handleFiles(fileInput.files);
-
-function handleFiles(fileList) {
-  filesToSend = Array.from(fileList);
-  sendList.innerHTML = "";
-  filesToSend.forEach((f) => {
-    sendStats[f.name] = { sent: 0, size: f.size };
-
-    const li = document.createElement("li");
-    li.id = `send-${f.name}`;
-    li.innerHTML = `
-      ${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)
-      <div class="progress-bar"><span></span></div>
-    `;
-    sendList.appendChild(li);
-  });
-}
-
+// ---------- Download All ----------
 downloadAllBtn.onclick = async () => {
   const zip = new JSZip();
-  recvFiles.forEach(f => zip.file(f.name, f.blob));
+  recvFiles.forEach((f) => zip.file(f.name, f.blob));
   const blob = await zip.generateAsync({ type: "blob" });
 
   const a = document.createElement("a");
@@ -344,4 +326,3 @@ downloadAllBtn.onclick = async () => {
   a.download = "pingIT-files.zip";
   a.click();
 };
-
