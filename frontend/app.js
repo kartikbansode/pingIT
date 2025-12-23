@@ -26,7 +26,7 @@ function log(m) {
 }
 
 function genRoomId(len = 6) {
-  const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
@@ -84,35 +84,69 @@ ws.onmessage = async (msg) => {
 // ---------- WebRTC ----------
 async function createPeer() {
   pc = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    iceServers: [
+      // STUN
+      { urls: "stun:stun.l.google.com:19302" },
+
+      // Public TURN (works for demos/tests)
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      }
+    ]
   });
 
-  pc.onicecandidate = e => {
+  pc.onicecandidate = (e) => {
     if (e.candidate) {
-      ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
+      ws.send(JSON.stringify({
+        type: "ice",
+        candidate: e.candidate,
+        roomId
+      }));
     }
   };
 
-  pc.ondatachannel = e => {
+  pc.ondatachannel = (e) => {
     channel = e.channel;
-    log("📡 Channel ready");
+    channel.binaryType = "arraybuffer";
+    log("📡 Data channel received");
     setupReceiver();
   };
+
+  pc.oniceconnectionstatechange = () => {
+    log("🧊 ICE state: " + pc.iceConnectionState);
+  };
+
+  pc.onconnectionstatechange = () => {
+    log("🔗 Connection: " + pc.connectionState);
+  };
 }
+
 
 async function makeOffer() {
   channel = pc.createDataChannel("file");
   channel.binaryType = "arraybuffer";
 
   channel.onopen = () => {
-    log("🚀 Channel open. Sending files...");
+    log("🚀 Data channel open. Sending files...");
     sendFiles();
   };
 
+  channel.onclose = () => log("📴 Data channel closed");
+  channel.onerror = (e) => console.error("Channel error", e);
+
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
+
   ws.send(JSON.stringify({ type: "offer", offer, roomId }));
 }
+
 
 // ---------- Buttons ----------
 createBtn.onclick = async () => {
