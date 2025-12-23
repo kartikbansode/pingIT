@@ -3,16 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>pingIT – P2P File Share</title>
+  <title>pingIT – Secure File Transfer</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="app">
-    <h1>🚀 pingIT</h1>
-    <p class="tagline">Fast peer-to-peer file sharing</p>
+  <header>
+    <div class="logo">🚀 pingIT</div>
+    <div class="subtitle">Fast, private peer-to-peer file sharing</div>
+  </header>
 
-    <div class="card">
-      <h2>📤 Send Files</h2>
+  <main class="container">
+    <!-- SEND -->
+    <section class="panel">
+      <h2>Send Files</h2>
 
       <div id="dropZone" class="drop-zone">
         Drag & drop files here
@@ -21,25 +24,60 @@
         <input type="file" id="fileInput" multiple hidden />
       </div>
 
-      <ul id="sendList"></ul>
-      <button id="createBtn" disabled>Create Room</button>
+      <div class="summary" id="sendSummary"></div>
+
+      <table class="file-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Progress</th>
+          </tr>
+        </thead>
+        <tbody id="sendList"></tbody>
+      </table>
+
+      <button id="createBtn" disabled class="primary">Create Room</button>
 
       <div id="roomBox" class="room-box hidden">
-        Room: <span id="roomId"></span>
-        <button id="copyBtn">Copy</button>
+        <div class="room-info">
+          Room Code: <strong id="roomId"></strong>
+          <button id="copyBtn">Copy</button>
+        </div>
+        <div id="qr"></div>
       </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2>📥 Receive Files</h2>
-      <input id="roomInput" placeholder="Enter Room ID"/>
-      <button id="joinBtn" disabled>Join Room</button>
-      <ul id="recvList"></ul>
-    </div>
+    <!-- RECEIVE -->
+    <section class="panel">
+      <h2>Receive Files</h2>
 
-    <p id="status">Connecting...</p>
-  </div>
+      <input id="roomInput" placeholder="Enter Room Code"/>
+      <button id="joinBtn" disabled class="primary">Join Room</button>
 
+      <div class="summary" id="recvSummary"></div>
+
+      <table class="file-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="recvList"></tbody>
+      </table>
+
+      <button id="downloadAllBtn" class="hidden secondary">⬇ Download All</button>
+    </section>
+  </main>
+
+  <footer>
+    <div id="status">Connecting...</div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
