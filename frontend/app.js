@@ -121,7 +121,7 @@ ws.onmessage = async (msg) => {
 // ---------- WebRTC ----------
 async function createPeer() {
   pc = new RTCPeerConnection({
-    ceServers: [
+    iceServers: [
       {
         urls: "stun:stun.relay.metered.ca:80",
       },
