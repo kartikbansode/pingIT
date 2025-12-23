@@ -85,10 +85,9 @@ ws.onmessage = async (msg) => {
 async function createPeer() {
   pc = new RTCPeerConnection({
     iceServers: [
-      // STUN
       { urls: "stun:stun.l.google.com:19302" },
 
-      // Public TURN (works for demos/tests)
+      // TURN fallback
       {
         urls: "turn:openrelay.metered.ca:80",
         username: "openrelayproject",
@@ -112,19 +111,19 @@ async function createPeer() {
     }
   };
 
-  pc.ondatachannel = (e) => {
-    channel = e.channel;
-    channel.binaryType = "arraybuffer";
-    log("📡 Data channel received");
-    setupReceiver();
-  };
-
   pc.oniceconnectionstatechange = () => {
     log("🧊 ICE state: " + pc.iceConnectionState);
   };
 
   pc.onconnectionstatechange = () => {
-    log("🔗 Connection: " + pc.connectionState);
+    log("🔗 Conn state: " + pc.connectionState);
+  };
+
+  pc.ondatachannel = (e) => {
+    channel = e.channel;
+    channel.binaryType = "arraybuffer";
+    log("📡 Data channel received");
+    setupReceiver();
   };
 }
 
@@ -143,9 +142,9 @@ async function makeOffer() {
 
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
-
   ws.send(JSON.stringify({ type: "offer", offer, roomId }));
 }
+
 
 
 // ---------- Buttons ----------
