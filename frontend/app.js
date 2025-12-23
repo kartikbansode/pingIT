@@ -26,7 +26,8 @@ function log(msg) {
 
 // ---- Helpers ----
 function genRoomId(len = 6) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let out = "";
   for (let i = 0; i < len; i++) {
     out += chars[Math.floor(Math.random() * chars.length)];
@@ -46,13 +47,15 @@ ws.onclose = () => log("❌ WebSocket closed");
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
-  console.log("WS message:", data);
+  console.log("📨 WS:", data);
 
+  // 🔹 Sender receives join → create offer
   if (data.type === "join" && isSender) {
     log("📥 Receiver joined. Creating offer...");
     await makeOffer();
   }
 
+  // 🔹 Receiver receives offer → answer
   if (data.type === "offer" && !isSender) {
     log("📨 Offer received");
     await createPeer();
@@ -62,11 +65,13 @@ ws.onmessage = async (msg) => {
     ws.send(JSON.stringify({ type: "answer", answer, roomId }));
   }
 
+  // 🔹 Sender receives answer
   if (data.type === "answer" && isSender) {
     log("📨 Answer received");
     await pc.setRemoteDescription(data.answer);
   }
 
+  // 🔹 ICE exchange
   if (data.type === "ice" && pc) {
     await pc.addIceCandidate(data.candidate);
   }
@@ -75,16 +80,18 @@ ws.onmessage = async (msg) => {
 // ---- WebRTC ----
 async function createPeer() {
   pc = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   });
 
   pc.onicecandidate = (e) => {
     if (e.candidate) {
-      ws.send(JSON.stringify({
-        type: "ice",
-        candidate: e.candidate,
-        roomId
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "ice",
+          candidate: e.candidate,
+          roomId,
+        })
+      );
     }
   };
 
@@ -123,7 +130,11 @@ createBtn.onclick = async () => {
   roomBox.classList.remove("hidden");
 
   await createPeer();
-  log("🟢 Room created. Share this Room ID.");
+
+  // sender also joins the room on server
+  ws.send(JSON.stringify({ type: "join", roomId }));
+
+  log("🟢 Room created. Waiting for receiver...");
 };
 
 joinBtn.onclick = () => {

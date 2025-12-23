@@ -3,70 +3,56 @@ import { WebSocketServer } from "ws";
 
 const server = http.createServer((req, res) => {
   res.writeHead(200);
-  res.end("pingIT signaling server running");
+  res.end("pingIT signaling server");
 });
 
 const wss = new WebSocketServer({ server });
-const rooms = {};
-
-function safeSend(ws, data) {
-  try {
-    if (ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify(data));
-    }
-  } catch (e) {
-    console.error("Send error:", e);
-  }
-}
+const rooms = new Map();
 
 wss.on("connection", (ws) => {
+  ws.roomId = null;
   console.log("🔌 Client connected");
 
   ws.on("message", (msg) => {
     try {
       const data = JSON.parse(msg.toString());
-      console.log("📨 Message:", data);
+      console.log("📨", data);
 
-      const room = data.roomId;
-      if (!room) return;
+      const { type, roomId } = data;
+      if (!roomId) return;
 
-      rooms[room] = rooms[room] || [];
-      if (!rooms[room].includes(ws)) rooms[room].push(ws);
+      if (type === "join") {
+        ws.roomId = roomId;
+        if (!rooms.has(roomId)) rooms.set(roomId, new Set());
+        rooms.get(roomId).add(ws);
+        console.log(`👥 Client joined room ${roomId}`);
+      }
 
-      // Relay to others in room
-      rooms[room].forEach((client) => {
-        if (client !== ws) {
-          safeSend(client, data);
+      // Relay message to others in the room
+      if (rooms.has(roomId)) {
+        for (const client of rooms.get(roomId)) {
+          if (client !== ws && client.readyState === client.OPEN) {
+            client.send(JSON.stringify(data));
+          }
         }
-      });
-    } catch (err) {
-      console.error("❌ Message handling error:", err);
+      }
+    } catch (e) {
+      console.error("❌ Error:", e);
     }
   });
 
   ws.on("close", () => {
     console.log("❌ Client disconnected");
-    for (const r in rooms) {
-      rooms[r] = rooms[r].filter(c => c !== ws);
-      if (rooms[r].length === 0) delete rooms[r];
+    if (ws.roomId && rooms.has(ws.roomId)) {
+      rooms.get(ws.roomId).delete(ws);
+      if (rooms.get(ws.roomId).size === 0) {
+        rooms.delete(ws.roomId);
+      }
     }
-  });
-
-  ws.on("error", (err) => {
-    console.error("❌ WS error:", err);
   });
 });
 
-// Keep connections alive (important on Render)
-setInterval(() => {
-  wss.clients.forEach(ws => {
-    if (ws.readyState === ws.OPEN) {
-      ws.ping();
-    }
-  });
-}, 30000);
-
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 pingIT signaling server running on port ${PORT}`);
+  console.log(`🚀 pingIT signaling server running on ${PORT}`);
 });
