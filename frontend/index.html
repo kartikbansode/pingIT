@@ -1,41 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pingIT – Share Files P2P</title>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>pingIT – Share Files P2P</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
-    <div class="app">
-        <h1>🚀 pingIT</h1>
-        <p class="tagline">Fast peer-to-peer file sharing</p>
+  <div class="app">
+    <h1>🚀 pingIT</h1>
+    <p class="tagline">Fast peer-to-peer file sharing</p>
 
-        <div class="card">
-            <h2>📤 Send File</h2>
-            <input type="file" id="fileInput" />
-            <button id="createBtn" disabled>Create Room</button>
-            <div id="roomBox" class="room-box hidden">
-                Room ID:
-                <span id="roomId"></span>
-                <button id="copyBtn">Copy</button>
-            </div>
+    <div class="card">
+      <h2>📤 Send File</h2>
+      <input type="file" id="fileInput"/>
+      <button id="createBtn" disabled>Create Room</button>
 
-        </div>
-
-        <div class="card">
-            <h2>📥 Receive File</h2>
-            <input id="roomInput" placeholder="Enter Room ID" />
-            <button id="joinBtn" disabled>Join Room</button>
-        </div>
-
-        <progress id="progress" value="0" max="100"></progress>
-        <p id="status">Connecting...</p>
+      <div id="roomBox" class="room-box hidden">
+        Room ID:
+        <span id="roomId"></span>
+        <button id="copyBtn">Copy</button>
+      </div>
     </div>
 
-    <script src="app.js"></script>
-</body>
+    <div class="card">
+      <h2>📥 Receive File</h2>
+      <input id="roomInput" placeholder="Enter Room ID"/>
+      <button id="joinBtn" disabled>Join Room</button>
+    </div>
 
+    <progress id="progress" value="0" max="100"></progress>
+    <p id="status">Connecting...</p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
 </html>

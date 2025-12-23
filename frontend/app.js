@@ -3,9 +3,13 @@ console.log("🔥 pingIT app.js loaded");
 const WS_URL = "wss://pingit-xyf7.onrender.com";
 const ws = new WebSocket(WS_URL);
 
-let pc, channel, file, roomId;
+let pc = null;
+let channel = null;
+let file = null;
+let roomId = "";
 let isSender = false;
 
+// ---- UI Elements (match HTML IDs) ----
 const fileInput = document.getElementById("fileInput");
 const createBtn = document.getElementById("createBtn");
 const joinBtn = document.getElementById("joinBtn");
@@ -15,24 +19,24 @@ const copyBtn = document.getElementById("copyBtn");
 const progress = document.getElementById("progress");
 const status = document.getElementById("status");
 
-if (!fileInput || !createBtn || !joinBtn || !roomBox || !roomIdSpan || !progress || !status) {
-  console.error("❌ One or more UI elements not found. Check IDs in HTML.");
-}
-
-// ---------- Helpers ----------
 function log(msg) {
   console.log(msg);
   status.textContent = msg;
 }
 
+// ---- Helpers ----
 function genRoomId(len = 6) {
-  const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "";
+  for (let i = 0; i < len; i++) {
+    out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return out;
 }
 
-// ---------- WebSocket ----------
+// ---- WebSocket ----
 ws.onopen = () => {
-  log("✅ Connected to server");
+  log("✅ Connected to signaling server");
   createBtn.disabled = false;
   joinBtn.disabled = false;
 };
@@ -42,13 +46,15 @@ ws.onclose = () => log("❌ WebSocket closed");
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
-  log(`📨 ${data.type} received`);
+  console.log("WS message:", data);
 
   if (data.type === "join" && isSender) {
+    log("📥 Receiver joined. Creating offer...");
     await makeOffer();
   }
 
   if (data.type === "offer" && !isSender) {
+    log("📨 Offer received");
     await createPeer();
     await pc.setRemoteDescription(data.offer);
     const answer = await pc.createAnswer();
@@ -57,6 +63,7 @@ ws.onmessage = async (msg) => {
   }
 
   if (data.type === "answer" && isSender) {
+    log("📨 Answer received");
     await pc.setRemoteDescription(data.answer);
   }
 
@@ -65,19 +72,23 @@ ws.onmessage = async (msg) => {
   }
 };
 
-// ---------- Peer ----------
+// ---- WebRTC ----
 async function createPeer() {
   pc = new RTCPeerConnection({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
   });
 
-  pc.onicecandidate = e => {
+  pc.onicecandidate = (e) => {
     if (e.candidate) {
-      ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
+      ws.send(JSON.stringify({
+        type: "ice",
+        candidate: e.candidate,
+        roomId
+      }));
     }
   };
 
-  pc.ondatachannel = e => {
+  pc.ondatachannel = (e) => {
     channel = e.channel;
     setupReceiver();
   };
@@ -88,7 +99,7 @@ async function makeOffer() {
   channel.binaryType = "arraybuffer";
 
   channel.onopen = () => {
-    log("🚀 Channel open. Sending file...");
+    log("🚀 Data channel open. Sending file...");
     sendFile();
   };
 
@@ -98,7 +109,7 @@ async function makeOffer() {
   ws.send(JSON.stringify({ type: "offer", offer, roomId }));
 }
 
-// ---------- UI ----------
+// ---- UI Actions ----
 createBtn.onclick = async () => {
   log("🟡 Create clicked");
 
@@ -112,7 +123,7 @@ createBtn.onclick = async () => {
   roomBox.classList.remove("hidden");
 
   await createPeer();
-  log("🟢 Room created. Share Room ID.");
+  log("🟢 Room created. Share this Room ID.");
 };
 
 joinBtn.onclick = () => {
@@ -122,24 +133,21 @@ joinBtn.onclick = () => {
   if (!roomId) return alert("Enter Room ID");
 
   ws.send(JSON.stringify({ type: "join", roomId }));
-  log("📤 Join request sent");
+  log("📤 Join request sent...");
 };
 
-if (copyBtn) {
-  copyBtn.onclick = () => {
-    navigator.clipboard.writeText(roomIdSpan.textContent);
-    alert("Room ID copied!");
-  };
-}
+copyBtn.onclick = () => {
+  navigator.clipboard.writeText(roomIdSpan.textContent);
+  alert("Room ID copied!");
+};
 
-
-// ---------- Send ----------
+// ---- Send File ----
 function sendFile() {
   const CHUNK = 64 * 1024;
   let offset = 0;
   const reader = new FileReader();
 
-  reader.onload = e => {
+  reader.onload = (e) => {
     channel.send(e.target.result);
     offset += e.target.result.byteLength;
     progress.value = (offset / file.size) * 100;
@@ -152,7 +160,7 @@ function sendFile() {
     }
   };
 
-  const readSlice = o => {
+  const readSlice = (o) => {
     const slice = file.slice(o, o + CHUNK);
     reader.readAsArrayBuffer(slice);
   };
@@ -160,11 +168,11 @@ function sendFile() {
   readSlice(0);
 }
 
-// ---------- Receive ----------
+// ---- Receive File ----
 function setupReceiver() {
   let buffers = [];
 
-  channel.onmessage = e => buffers.push(e.data);
+  channel.onmessage = (e) => buffers.push(e.data);
 
   channel.onclose = () => {
     const blob = new Blob(buffers);
