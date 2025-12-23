@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>pingIT – Share Files P2P</title>
+  <title>pingIT – P2P File Share</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -12,21 +12,23 @@
     <p class="tagline">Fast peer-to-peer file sharing</p>
 
     <div class="card">
-      <h2>📤 Send File</h2>
-      <input type="file" id="fileInput"/>
+      <h2>📤 Send Files</h2>
+      <input type="file" id="fileInput" multiple />
+      <ul id="sendList"></ul>
       <button id="createBtn" disabled>Create Room</button>
 
       <div id="roomBox" class="room-box hidden">
-        Room ID:
+        Room:
         <span id="roomId"></span>
         <button id="copyBtn">Copy</button>
       </div>
     </div>
 
     <div class="card">
-      <h2>📥 Receive File</h2>
+      <h2>📥 Receive</h2>
       <input id="roomInput" placeholder="Enter Room ID"/>
       <button id="joinBtn" disabled>Join Room</button>
+      <ul id="recvList"></ul>
     </div>
 
     <progress id="progress" value="0" max="100"></progress>
