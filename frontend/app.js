@@ -87,10 +87,17 @@ ws.onmessage = async (msg) => {
 // ---------- WebRTC ----------
 async function createPeer() {
   pc = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.relay.metered.ca:80" },
+     iceServers: [
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
       {
         urls: "turn:global.relay.metered.ca:80",
+        username: "3925f5a71308b78d75a1f5fd",
+        credential: "kWUIj7VlrSk9/9+D",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
@@ -99,7 +106,12 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-    ],
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "3925f5a71308b78d75a1f5fd",
+        credential: "kWUIj7VlrSk9/9+D",
+      },
+  ],
   });
 
   pc.onicecandidate = (e) => {
