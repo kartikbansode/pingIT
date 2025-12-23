@@ -9,7 +9,7 @@ let file = null;
 let roomId = "";
 let isSender = false;
 
-// ---- UI Elements (match HTML IDs) ----
+// ---- UI Elements ----
 const fileInput = document.getElementById("fileInput");
 const createBtn = document.getElementById("createBtn");
 const joinBtn = document.getElementById("joinBtn");
@@ -26,8 +26,7 @@ function log(msg) {
 
 // ---- Helpers ----
 function genRoomId(len = 6) {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let out = "";
   for (let i = 0; i < len; i++) {
     out += chars[Math.floor(Math.random() * chars.length)];
@@ -42,8 +41,8 @@ ws.onopen = () => {
   joinBtn.disabled = false;
 };
 
-ws.onerror = () => log("❌ WebSocket error");
-ws.onclose = () => log("❌ WebSocket closed");
+ws.onerror = (e) => console.error("WS error", e);
+ws.onclose = () => log("ℹ️ Signaling connection closed");
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
@@ -52,52 +51,60 @@ ws.onmessage = async (msg) => {
   // ignore other rooms
   if (data.roomId !== roomId) return;
 
+  // Sender: receiver joined
   if (data.type === "join" && isSender) {
     log("📥 Receiver joined. Creating offer...");
     await makeOffer();
   }
 
+  // Receiver: got offer
   if (data.type === "offer" && !isSender) {
     log("📨 Offer received");
     await createPeer();
     await pc.setRemoteDescription(data.offer);
+
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+
     ws.send(JSON.stringify({ type: "answer", answer, roomId }));
   }
 
+  // Sender: got answer
   if (data.type === "answer" && isSender) {
     log("📨 Answer received");
     await pc.setRemoteDescription(data.answer);
   }
 
+  // ICE exchange
   if (data.type === "ice" && pc) {
     await pc.addIceCandidate(data.candidate);
   }
 };
 
-
 // ---- WebRTC ----
 async function createPeer() {
   pc = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
   });
 
   pc.onicecandidate = (e) => {
     if (e.candidate) {
-      ws.send(
-        JSON.stringify({
-          type: "ice",
-          candidate: e.candidate,
-          roomId,
-        })
-      );
+      ws.send(JSON.stringify({
+        type: "ice",
+        candidate: e.candidate,
+        roomId
+      }));
     }
   };
 
   pc.ondatachannel = (e) => {
     channel = e.channel;
+    log("📡 Data channel received");
     setupReceiver();
+  };
+
+  pc.onconnectionstatechange = () => {
+    log("🔗 Connection: " + pc.connectionState);
   };
 }
 
@@ -109,6 +116,9 @@ async function makeOffer() {
     log("🚀 Data channel open. Sending file...");
     sendFile();
   };
+
+  channel.onclose = () => log("📴 Data channel closed");
+  channel.onerror = (e) => console.error("Channel error", e);
 
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
@@ -131,7 +141,7 @@ createBtn.onclick = async () => {
 
   await createPeer();
 
-  // sender also joins the room on server
+  // sender also joins room
   ws.send(JSON.stringify({ type: "join", roomId }));
 
   log("🟢 Room created. Waiting for receiver...");
