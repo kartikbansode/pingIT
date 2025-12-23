@@ -37,8 +37,20 @@ function genRoomId(len = 6) {
 }
 
 // --------- Drag & Browse ----------
-browseBtn.onclick = () => fileInput.click();
-dropZone.onclick = () => fileInput.click();
+browseBtn.onclick = (e) => {
+  e.stopPropagation();
+  openPicker();
+};
+
+dropZone.onclick = () => {
+  openPicker();
+};
+
+function openPicker() {
+  fileInput.value = ""; // allow same file reselect
+  fileInput.click();
+}
+
 
 dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add("drag"); };
 dropZone.ondragleave = () => dropZone.classList.remove("drag");
