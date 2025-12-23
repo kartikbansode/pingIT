@@ -8,10 +8,6 @@ let filesToSend = [];
 let roomId = "";
 let isSender = false;
 
-let sendStats = {};
-let recvFiles = [];
-let startTime = 0;
-
 // ---- UI ----
 const fileInput = document.getElementById("fileInput");
 const browseBtn = document.getElementById("browseBtn");
@@ -23,7 +19,6 @@ const joinBtn = document.getElementById("joinBtn");
 const roomBox = document.getElementById("roomBox");
 const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
-const downloadAllBtn = document.getElementById("downloadAllBtn");
 const status = document.getElementById("status");
 
 function log(m) {
@@ -33,22 +28,19 @@ function log(m) {
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from(
-    { length: len },
-    () => c[Math.floor(Math.random() * c.length)]
-  ).join("");
+  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
 // ---------- Browse & Drag-Drop ----------
 browseBtn.onclick = () => fileInput.click();
 dropZone.onclick = () => fileInput.click();
 
-dropZone.ondragover = (e) => {
+dropZone.ondragover = e => {
   e.preventDefault();
   dropZone.classList.add("drag");
 };
 dropZone.ondragleave = () => dropZone.classList.remove("drag");
-dropZone.ondrop = (e) => {
+dropZone.ondrop = e => {
   e.preventDefault();
   dropZone.classList.remove("drag");
   handleFiles(e.dataTransfer.files);
@@ -58,18 +50,11 @@ fileInput.onchange = () => handleFiles(fileInput.files);
 
 function handleFiles(list) {
   filesToSend = Array.from(list);
-  sendStats = {};
   sendList.innerHTML = "";
 
-  filesToSend.forEach((f) => {
-    sendStats[f.name] = { sent: 0, size: f.size };
-
+  filesToSend.forEach(f => {
     const li = document.createElement("li");
-    li.id = `send-${f.name}`;
-    li.innerHTML = `
-      <div>${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)</div>
-      <div class="progress-bar"><span></span></div>
-    `;
+    li.textContent = `${f.name} (${(f.size/1024/1024).toFixed(1)} MB)`;
     sendList.appendChild(li);
   });
 }
@@ -82,7 +67,7 @@ ws.onopen = () => {
 };
 
 ws.onclose = () => log("ℹ️ Signaling closed");
-ws.onerror = (e) => console.error("WS error", e);
+ws.onerror = e => console.error("WS error", e);
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
@@ -140,28 +125,19 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-    ]
+  ],
   });
 
-  pc.onicecandidate = (e) => {
+  pc.onicecandidate = e => {
     if (e.candidate) {
-      console.log("🧊 Local ICE:", e.candidate.candidate);
       ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
     }
   };
 
-  pc.oniceconnectionstatechange = () => {
-    log("🧊 ICE: " + pc.iceConnectionState);
-  };
-
-  pc.onconnectionstatechange = () => {
-    log("🔗 Conn: " + pc.connectionState);
-  };
-
-  pc.ondatachannel = (e) => {
+  pc.ondatachannel = e => {
     channel = e.channel;
     channel.binaryType = "arraybuffer";
-    log("📡 Data channel ready");
+    log("📡 Channel ready");
     setupReceiver();
   };
 }
@@ -171,13 +147,9 @@ async function makeOffer() {
   channel.binaryType = "arraybuffer";
 
   channel.onopen = () => {
-    log("🚀 Channel open. Sending files...");
-    startTime = Date.now();
+    log("🚀 Sending files...");
     sendFiles();
   };
-
-  channel.onclose = () => log("📴 Channel closed");
-  channel.onerror = (e) => console.error("Channel error", e);
 
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
@@ -192,9 +164,6 @@ createBtn.onclick = async () => {
   roomId = genRoomId();
   roomIdSpan.textContent = roomId;
   roomBox.classList.remove("hidden");
-
-  document.getElementById("qr").innerHTML = "";
-  new QRCode(document.getElementById("qr"), roomId);
 
   await createPeer();
   ws.send(JSON.stringify({ type: "join", roomId }));
@@ -217,9 +186,7 @@ copyBtn.onclick = () => {
 // ---------- File Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    channel.send(
-      JSON.stringify({ meta: true, name: file.name, size: file.size })
-    );
+    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
@@ -227,36 +194,19 @@ async function sendFiles() {
 }
 
 function sendOneFile(file) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const CHUNK = 64 * 1024;
     let offset = 0;
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = e => {
       channel.send(e.target.result);
       offset += e.target.result.byteLength;
-
-      sendStats[file.name].sent = offset;
-      const percent = (offset / file.size) * 100;
-      document.querySelector(
-        `#send-${CSS.escape(file.name)} span`
-      ).style.width = percent + "%";
-
-      const elapsed = (Date.now() - startTime) / 1000;
-      const speed = offset / elapsed;
-      const eta = (file.size - offset) / speed;
-
-      status.textContent = `Sending ${file.name} • ${(
-        speed /
-        1024 /
-        1024
-      ).toFixed(2)} MB/s • ETA ${eta.toFixed(1)}s`;
-
       if (offset < file.size) readSlice(offset);
       else resolve();
     };
 
-    const readSlice = (o) => {
+    const readSlice = o => {
       const slice = file.slice(o, o + CHUNK);
       reader.readAsArrayBuffer(slice);
     };
@@ -271,7 +221,7 @@ function setupReceiver() {
   let buffers = [];
   let received = 0;
 
-  channel.onmessage = (e) => {
+  channel.onmessage = e => {
     if (typeof e.data === "string") {
       const msg = JSON.parse(e.data);
 
@@ -293,38 +243,18 @@ function setupReceiver() {
       const blob = new Blob(buffers);
       const url = URL.createObjectURL(blob);
 
-      recvFiles.push({ name: currentFile.name, blob });
-
       const li = document.createElement("li");
-      const btn = document.createElement("button");
-      btn.textContent = "Download";
-
-      btn.onclick = () => {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = currentFile.name;
-        a.click();
-      };
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = currentFile.name;
+      a.textContent = "Download";
 
       li.textContent = currentFile.name + " ";
-      li.appendChild(btn);
+      li.appendChild(a);
       recvList.appendChild(li);
 
-      downloadAllBtn.classList.remove("hidden");
       log(`✅ Received ${currentFile.name}`);
       currentFile = null;
     }
   };
 }
-
-// ---------- Download All ----------
-downloadAllBtn.onclick = async () => {
-  const zip = new JSZip();
-  recvFiles.forEach((f) => zip.file(f.name, f.blob));
-  const blob = await zip.generateAsync({ type: "blob" });
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "pingIT-files.zip";
-  a.click();
-};

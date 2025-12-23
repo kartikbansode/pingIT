@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>pingIT – P2P File Share</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
   <div class="app">
     <h1>🚀 pingIT</h1>
@@ -17,28 +15,8 @@
       <h2>📤 Send Files</h2>
 
       <div id="dropZone" class="drop-zone">
-        Drag & drop files here<br />or click to browse
-        <input type="file" id="fileInput" multiple hidden />
-      </div>
-
-      <ul id="sendList"></ul>
-      <button id="createBtn" disabled>Create Room</button>
-
-      <div id="roomBox" class="room-box hidden">
-        <div>
-          Room: <span id="roomId"></span>
-          <button id="copyBtn">Copy</button>
-        </div>
-        <div id="qr"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>📤 Send Files</h2>
-
-      <div id="dropZone" class="drop-zone">
-        <strong>Drag & drop files here</strong><br />
-        <span>or</span>
+        Drag & drop files here
+        <br/>
         <button id="browseBtn" type="button">Browse Files</button>
         <input type="file" id="fileInput" multiple hidden />
       </div>
@@ -47,23 +25,21 @@
       <button id="createBtn" disabled>Create Room</button>
 
       <div id="roomBox" class="room-box hidden">
-        <div>
-          Room: <span id="roomId"></span>
-          <button id="copyBtn">Copy</button>
-        </div>
-        <div id="qr"></div>
+        Room: <span id="roomId"></span>
+        <button id="copyBtn">Copy</button>
       </div>
     </div>
 
+    <div class="card">
+      <h2>📥 Receive Files</h2>
+      <input id="roomInput" placeholder="Enter Room ID"/>
+      <button id="joinBtn" disabled>Join Room</button>
+      <ul id="recvList"></ul>
+    </div>
 
     <p id="status">Connecting...</p>
   </div>
 
-  <!-- libs -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
   <script src="app.js"></script>
 </body>
-
 </html>
