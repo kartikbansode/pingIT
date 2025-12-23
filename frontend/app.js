@@ -85,18 +85,16 @@ ws.onmessage = async (msg) => {
 async function createPeer() {
   pc = new RTCPeerConnection({
     iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-
-      // TURN fallback
+      { urls: "stun:stun.relay.metered.ca:80" },
       {
-        urls: "turn:openrelay.metered.ca:80",
-        username: "openrelayproject",
-        credential: "openrelayproject"
+        urls: "turn:global.relay.metered.ca:80",
+        username: "3925f5a71308b78d75a1f5fd",
+        credential: "kWUIj7VlrSk9/9+D"
       },
       {
-        urls: "turn:openrelay.metered.ca:443",
-        username: "openrelayproject",
-        credential: "openrelayproject"
+        urls: "turn:global.relay.metered.ca:443",
+        username: "3925f5a71308b78d75a1f5fd",
+        credential: "kWUIj7VlrSk9/9+D"
       }
     ]
   });
@@ -116,7 +114,7 @@ async function createPeer() {
   };
 
   pc.onconnectionstatechange = () => {
-    log("🔗 Conn state: " + pc.connectionState);
+    log("🔗 Connection: " + pc.connectionState);
   };
 
   pc.ondatachannel = (e) => {
@@ -126,6 +124,7 @@ async function createPeer() {
     setupReceiver();
   };
 }
+
 
 
 async function makeOffer() {
