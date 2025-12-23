@@ -1,3 +1,5 @@
+console.log("🔥 pingIT app.js loaded");
+
 const WS_URL = "wss://pingit-xyf7.onrender.com";
 const ws = new WebSocket(WS_URL);
 
@@ -12,6 +14,10 @@ const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
 const progress = document.getElementById("progress");
 const status = document.getElementById("status");
+
+if (!fileInput || !createBtn || !joinBtn || !roomBox || !roomIdSpan || !progress || !status) {
+  console.error("❌ One or more UI elements not found. Check IDs in HTML.");
+}
 
 // ---------- Helpers ----------
 function log(msg) {
