@@ -14,6 +14,7 @@ let startTime = 0;
 
 // ---- UI ----
 const fileInput = document.getElementById("fileInput");
+const browseBtn = document.getElementById("browseBtn");
 const dropZone = document.getElementById("dropZone");
 const sendList = document.getElementById("sendList");
 const recvList = document.getElementById("recvList");
@@ -38,7 +39,8 @@ function genRoomId(len = 6) {
   ).join("");
 }
 
-// ---------- Drag & Drop ----------
+// ---------- Browse & Drag-Drop ----------
+browseBtn.onclick = () => fileInput.click();
 dropZone.onclick = () => fileInput.click();
 
 dropZone.ondragover = (e) => {
@@ -138,7 +140,7 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-    ],
+    ]
   });
 
   pc.onicecandidate = (e) => {

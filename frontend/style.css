@@ -85,15 +85,25 @@ li {
 .drop-zone {
   border: 2px dashed #334155;
   border-radius: 10px;
-  padding: 18px;
+  padding: 16px;
   margin-bottom: 8px;
-  color: #94a3b8;
+  color: #cbd5f5;
   cursor: pointer;
 }
 
 .drop-zone.drag {
   background: #0f172a;
   border-color: #22c55e;
+}
+
+#browseBtn {
+  margin-top: 8px;
+  background: #1d4ed8;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  color: white;
+  cursor: pointer;
 }
 
 .room-box {

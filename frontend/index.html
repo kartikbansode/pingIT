@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>pingIT – P2P File Share</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="app">
     <h1>🚀 pingIT</h1>
@@ -15,7 +17,7 @@
       <h2>📤 Send Files</h2>
 
       <div id="dropZone" class="drop-zone">
-        Drag & drop files here<br/>or click to browse
+        Drag & drop files here<br />or click to browse
         <input type="file" id="fileInput" multiple hidden />
       </div>
 
@@ -32,13 +34,27 @@
     </div>
 
     <div class="card">
-      <h2>📥 Receive</h2>
-      <input id="roomInput" placeholder="Enter Room ID"/>
-      <button id="joinBtn" disabled>Join Room</button>
+      <h2>📤 Send Files</h2>
 
-      <ul id="recvList"></ul>
-      <button id="downloadAllBtn" class="hidden">⬇ Download All</button>
+      <div id="dropZone" class="drop-zone">
+        <strong>Drag & drop files here</strong><br />
+        <span>or</span>
+        <button id="browseBtn" type="button">Browse Files</button>
+        <input type="file" id="fileInput" multiple hidden />
+      </div>
+
+      <ul id="sendList"></ul>
+      <button id="createBtn" disabled>Create Room</button>
+
+      <div id="roomBox" class="room-box hidden">
+        <div>
+          Room: <span id="roomId"></span>
+          <button id="copyBtn">Copy</button>
+        </div>
+        <div id="qr"></div>
+      </div>
     </div>
+
 
     <p id="status">Connecting...</p>
   </div>
@@ -49,4 +65,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
