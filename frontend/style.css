@@ -14,7 +14,7 @@ header {
   text-align: center;
 }
 .logo { font-size: 22px; font-weight: 700; }
-.subtitle { color: #94a3b8; font-size: 14px; }
+.subtitle { color: #94a3b8; font-size: 14px; margin-top: 4px; }
 
 .container {
   display: grid;
