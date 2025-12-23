@@ -119,10 +119,13 @@ joinBtn.onclick = () => {
   log("📤 Join request sent");
 };
 
-copyBtn.onclick = () => {
-  navigator.clipboard.writeText(roomIdSpan.textContent);
-  alert("Room ID copied!");
-};
+if (copyBtn) {
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(roomIdSpan.textContent);
+    alert("Room ID copied!");
+  };
+}
+
 
 // ---------- Send ----------
 function sendFile() {
