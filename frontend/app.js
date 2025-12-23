@@ -27,16 +27,19 @@ function log(m) {
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
+  return Array.from(
+    { length: len },
+    () => c[Math.floor(Math.random() * c.length)]
+  ).join("");
 }
 
 // ---------- UI ----------
 fileInput.onchange = () => {
   filesToSend = Array.from(fileInput.files);
   sendList.innerHTML = "";
-  filesToSend.forEach(f => {
+  filesToSend.forEach((f) => {
     const li = document.createElement("li");
-    li.textContent = `${f.name} (${(f.size/1024/1024).toFixed(1)} MB)`;
+    li.textContent = `${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)`;
     sendList.appendChild(li);
   });
 };
@@ -49,7 +52,7 @@ ws.onopen = () => {
 };
 
 ws.onclose = () => log("ℹ️ Signaling closed");
-ws.onerror = e => console.error(e);
+ws.onerror = (e) => console.error(e);
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
@@ -89,23 +92,26 @@ async function createPeer() {
       {
         urls: "turn:global.relay.metered.ca:80",
         username: "3925f5a71308b78d75a1f5fd",
-        credential: "kWUIj7VlrSk9/9+D"
+        credential: "kWUIj7VlrSk9/9+D",
       },
       {
         urls: "turn:global.relay.metered.ca:443",
         username: "3925f5a71308b78d75a1f5fd",
-        credential: "kWUIj7VlrSk9/9+D"
-      }
-    ]
+        credential: "kWUIj7VlrSk9/9+D",
+      },
+    ],
   });
 
   pc.onicecandidate = (e) => {
     if (e.candidate) {
-      ws.send(JSON.stringify({
-        type: "ice",
-        candidate: e.candidate,
-        roomId
-      }));
+      console.log("🧊 Local ICE:", e.candidate.candidate);
+      ws.send(
+        JSON.stringify({
+          type: "ice",
+          candidate: e.candidate,
+          roomId,
+        })
+      );
     }
   };
 
@@ -125,8 +131,6 @@ async function createPeer() {
   };
 }
 
-
-
 async function makeOffer() {
   channel = pc.createDataChannel("file");
   channel.binaryType = "arraybuffer";
@@ -143,8 +147,6 @@ async function makeOffer() {
   await pc.setLocalDescription(offer);
   ws.send(JSON.stringify({ type: "offer", offer, roomId }));
 }
-
-
 
 // ---------- Buttons ----------
 createBtn.onclick = async () => {
@@ -178,7 +180,9 @@ copyBtn.onclick = () => {
 async function sendFiles() {
   for (const file of filesToSend) {
     // send meta
-    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
+    channel.send(
+      JSON.stringify({ meta: true, name: file.name, size: file.size })
+    );
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
@@ -186,12 +190,12 @@ async function sendFiles() {
 }
 
 function sendOneFile(file) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const CHUNK = 64 * 1024;
     let offset = 0;
     const reader = new FileReader();
 
-    reader.onload = e => {
+    reader.onload = (e) => {
       channel.send(e.target.result);
       offset += e.target.result.byteLength;
       progress.value = (offset / file.size) * 100;
@@ -200,7 +204,7 @@ function sendOneFile(file) {
       else resolve();
     };
 
-    const readSlice = o => {
+    const readSlice = (o) => {
       const slice = file.slice(o, o + CHUNK);
       reader.readAsArrayBuffer(slice);
     };
@@ -215,7 +219,7 @@ function setupReceiver() {
   let buffers = [];
   let received = 0;
 
-  channel.onmessage = e => {
+  channel.onmessage = (e) => {
     if (typeof e.data === "string") {
       const msg = JSON.parse(e.data);
 
