@@ -6,21 +6,23 @@ const rooms = {};
 wss.on("connection", ws => {
   ws.on("message", msg => {
     const data = JSON.parse(msg);
-
     const room = data.roomId;
+
     if (!rooms[room]) rooms[room] = [];
     if (!rooms[room].includes(ws)) rooms[room].push(ws);
 
     rooms[room].forEach(client => {
-      if (client !== ws) client.send(JSON.stringify(data));
+      if (client !== ws && client.readyState === 1) {
+        client.send(JSON.stringify(data));
+      }
     });
   });
 
   ws.on("close", () => {
-    for (const room in rooms) {
-      rooms[room] = rooms[room].filter(c => c !== ws);
+    for (const r in rooms) {
+      rooms[r] = rooms[r].filter(c => c !== ws);
     }
   });
 });
 
-console.log("Signaling server running");
+console.log("pingIT signaling server running");
