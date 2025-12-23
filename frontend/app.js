@@ -89,11 +89,17 @@ createRoomBtn.onclick = async () => {
 
 // 🔹 Receiver joins room
 joinRoomBtn.onclick = () => {
+  if (ws.readyState !== WebSocket.OPEN) {
+    alert("WebSocket not connected yet. Wait a second and try again.");
+    return;
+  }
+
   roomId = document.getElementById("roomInput").value.trim();
   if (!roomId) return alert("Enter Room ID");
 
   ws.send(JSON.stringify({ type: "join", roomId }));
 };
+
 
 // 📤 Send file in chunks
 function sendFile() {
