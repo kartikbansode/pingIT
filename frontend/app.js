@@ -7,7 +7,6 @@ let pc, channel;
 let filesToSend = [];
 let roomId = "";
 let isSender = false;
-
 let recvFiles = [];
 
 // UI
@@ -33,32 +32,36 @@ function log(m) {
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
+  return Array.from(
+    { length: len },
+    () => c[Math.floor(Math.random() * c.length)]
+  ).join("");
 }
 
-// --------- Drag & Browse ----------
+// ---- File Picker FIX ----
+function openPicker() {
+  fileInput.value = "";
+  fileInput.click();
+}
+
 browseBtn.onclick = (e) => {
   e.stopPropagation();
   openPicker();
 };
 
-dropZone.onclick = () => {
-  openPicker();
+dropZone.onclick = () => openPicker();
+
+dropZone.ondragover = (e) => {
+  e.preventDefault();
+  dropZone.classList.add("drag");
 };
-
-function openPicker() {
-  fileInput.value = ""; // allow same file reselect
-  fileInput.click();
-}
-
-
-dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add("drag"); };
 dropZone.ondragleave = () => dropZone.classList.remove("drag");
-dropZone.ondrop = e => {
+dropZone.ondrop = (e) => {
   e.preventDefault();
   dropZone.classList.remove("drag");
   handleFiles(e.dataTransfer.files);
 };
+
 fileInput.onchange = () => handleFiles(fileInput.files);
 
 function handleFiles(list) {
@@ -66,15 +69,19 @@ function handleFiles(list) {
   sendList.innerHTML = "";
 
   let total = 0;
-  filesToSend.forEach(f => total += f.size);
-  sendSummary.textContent = `${filesToSend.length} files • ${(total/1024/1024).toFixed(1)} MB`;
+  filesToSend.forEach((f) => (total += f.size));
+  sendSummary.textContent = `${filesToSend.length} files • ${(
+    total /
+    1024 /
+    1024
+  ).toFixed(1)} MB`;
 
-  filesToSend.forEach(f => {
+  filesToSend.forEach((f) => {
     const tr = document.createElement("tr");
     tr.id = `send-${f.name}`;
     tr.innerHTML = `
       <td>${f.name}</td>
-      <td>${(f.size/1024/1024).toFixed(1)} MB</td>
+      <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
       <td><div class="progress"><span></span></div></td>
     `;
     sendList.appendChild(tr);
@@ -92,13 +99,9 @@ ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
   if (data.roomId !== roomId) return;
 
-  if (data.type === "join" && isSender) {
-    log("📥 Receiver joined");
-    await makeOffer();
-  }
+  if (data.type === "join" && isSender) await makeOffer();
 
   if (data.type === "offer" && !isSender) {
-    log("📨 Offer received");
     await createPeer();
     await pc.setRemoteDescription(data.offer);
     const answer = await pc.createAnswer();
@@ -107,7 +110,6 @@ ws.onmessage = async (msg) => {
   }
 
   if (data.type === "answer" && isSender) {
-    log("📨 Answer received");
     await pc.setRemoteDescription(data.answer);
   }
 
@@ -119,7 +121,7 @@ ws.onmessage = async (msg) => {
 // ---------- WebRTC ----------
 async function createPeer() {
   pc = new RTCPeerConnection({
-    iceServers: [
+    ceServers: [
       {
         urls: "stun:stun.relay.metered.ca:80",
       },
@@ -143,19 +145,18 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-  ]
+    ],
   });
 
-  pc.onicecandidate = e => {
+  pc.onicecandidate = (e) => {
     if (e.candidate) {
       ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
     }
   };
 
-  pc.ondatachannel = e => {
+  pc.ondatachannel = (e) => {
     channel = e.channel;
     channel.binaryType = "arraybuffer";
-    log("📡 Channel ready");
     setupReceiver();
   };
 }
@@ -192,7 +193,7 @@ joinBtn.onclick = () => {
   roomId = document.getElementById("roomInput").value.trim().toUpperCase();
   if (!roomId) return alert("Enter room code");
   ws.send(JSON.stringify({ type: "join", roomId }));
-  log("📤 Joining room...");
+  log("📤 Joining...");
 };
 
 copyBtn.onclick = () => {
@@ -210,7 +211,9 @@ if (params.get("room")) {
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
+    channel.send(
+      JSON.stringify({ meta: true, name: file.name, size: file.size })
+    );
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
@@ -218,21 +221,23 @@ async function sendFiles() {
 }
 
 function sendOneFile(file) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const CHUNK = 64 * 1024;
     let offset = 0;
     const reader = new FileReader();
 
-    reader.onload = e => {
+    reader.onload = (e) => {
       channel.send(e.target.result);
       offset += e.target.result.byteLength;
       const pct = (offset / file.size) * 100;
-      document.querySelector(`#send-${CSS.escape(file.name)} span`).style.width = pct + "%";
+      document.querySelector(
+        `#send-${CSS.escape(file.name)} span`
+      ).style.width = pct + "%";
       if (offset < file.size) readSlice(offset);
       else resolve();
     };
 
-    const readSlice = o => reader.readAsArrayBuffer(file.slice(o, o + CHUNK));
+    const readSlice = (o) => reader.readAsArrayBuffer(file.slice(o, o + CHUNK));
     readSlice(0);
   });
 }
@@ -243,7 +248,7 @@ function setupReceiver() {
   let buffers = [];
   let received = 0;
 
-  channel.onmessage = e => {
+  channel.onmessage = (e) => {
     if (typeof e.data === "string") {
       const msg = JSON.parse(e.data);
       if (msg.meta) {
@@ -271,7 +276,7 @@ function setupReceiver() {
 
       tr.innerHTML = `
         <td>${currentFile.name}</td>
-        <td>${(currentFile.size/1024/1024).toFixed(1)} MB</td>
+        <td>${(currentFile.size / 1024 / 1024).toFixed(1)} MB</td>
         <td></td>
       `;
       tr.children[2].appendChild(a);
@@ -279,7 +284,6 @@ function setupReceiver() {
 
       recvSummary.textContent = `${recvFiles.length} files received`;
       downloadAllBtn.classList.remove("hidden");
-
       currentFile = null;
     }
   };
@@ -288,7 +292,7 @@ function setupReceiver() {
 // ---------- Download All ----------
 downloadAllBtn.onclick = async () => {
   const zip = new JSZip();
-  recvFiles.forEach(f => zip.file(f.name, f.blob));
+  recvFiles.forEach((f) => zip.file(f.name, f.blob));
   const blob = await zip.generateAsync({ type: "blob" });
 
   const a = document.createElement("a");
