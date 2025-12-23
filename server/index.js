@@ -9,30 +9,64 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server });
 const rooms = {};
 
-wss.on("connection", ws => {
-  ws.on("message", msg => {
-    const data = JSON.parse(msg);
-    const room = data.roomId;
-    if (!room) return;
+function safeSend(ws, data) {
+  try {
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify(data));
+    }
+  } catch (e) {
+    console.error("Send error:", e);
+  }
+}
 
-    rooms[room] = rooms[room] || [];
-    if (!rooms[room].includes(ws)) rooms[room].push(ws);
+wss.on("connection", (ws) => {
+  console.log("🔌 Client connected");
 
-    rooms[room].forEach(client => {
-      if (client !== ws && client.readyState === 1) {
-        client.send(JSON.stringify(data));
-      }
-    });
+  ws.on("message", (msg) => {
+    try {
+      const data = JSON.parse(msg.toString());
+      console.log("📨 Message:", data);
+
+      const room = data.roomId;
+      if (!room) return;
+
+      rooms[room] = rooms[room] || [];
+      if (!rooms[room].includes(ws)) rooms[room].push(ws);
+
+      // Relay to others in room
+      rooms[room].forEach((client) => {
+        if (client !== ws) {
+          safeSend(client, data);
+        }
+      });
+    } catch (err) {
+      console.error("❌ Message handling error:", err);
+    }
   });
 
   ws.on("close", () => {
+    console.log("❌ Client disconnected");
     for (const r in rooms) {
       rooms[r] = rooms[r].filter(c => c !== ws);
+      if (rooms[r].length === 0) delete rooms[r];
     }
+  });
+
+  ws.on("error", (err) => {
+    console.error("❌ WS error:", err);
   });
 });
 
+// Keep connections alive (important on Render)
+setInterval(() => {
+  wss.clients.forEach(ws => {
+    if (ws.readyState === ws.OPEN) {
+      ws.ping();
+    }
+  });
+}, 30000);
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 pingIT signaling server running on ${PORT}`);
+  console.log(`🚀 pingIT signaling server running on port ${PORT}`);
 });
