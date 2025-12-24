@@ -1,6 +1,19 @@
 console.log("pingIT loaded");
 
-const WS_URL = "wss://pingit-xyf7.onrender.com";
+const WS_URL =
+  (location.protocol === "https:" ? "wss://" : "ws://") +
+  "pingit-xyf7.onrender.com";
+
+ws.onerror = (e) => {
+  console.error("WebSocket error", e);
+  log("WebSocket connection failed");
+};
+
+ws.onclose = () => {
+  console.warn("WebSocket closed");
+  log("WebSocket closed");
+};
+
 const ws = new WebSocket(WS_URL);
 
 let pc, channel;
@@ -44,7 +57,10 @@ function log(m) {
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
+  return Array.from(
+    { length: len },
+    () => c[Math.floor(Math.random() * c.length)]
+  ).join("");
 }
 
 // ---------- Enable buttons when WS ready ----------
@@ -88,7 +104,11 @@ if (isSendPage) {
 
     let total = 0;
     filesToSend.forEach((f) => (total += f.size));
-    sendSummary.textContent = `${filesToSend.length} files • ${(total / 1024 / 1024).toFixed(1)} MB`;
+    sendSummary.textContent = `${filesToSend.length} files • ${(
+      total /
+      1024 /
+      1024
+    ).toFixed(1)} MB`;
 
     filesToSend.forEach((f) => {
       const tr = document.createElement("tr");
@@ -110,7 +130,10 @@ if (isSendPage) {
     roomIdSpan.textContent = roomId;
     roomBox.classList.remove("hidden");
 
-    const url = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomId}`;
+    const url = `${location.origin}${location.pathname.replace(
+      "send.html",
+      "receive.html"
+    )}?room=${roomId}`;
     document.getElementById("qr").innerHTML = "";
     new QRCode(document.getElementById("qr"), url);
 
@@ -125,7 +148,10 @@ if (isSendPage) {
   };
 
   copyLinkBtn.onclick = () => {
-    const link = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomIdSpan.textContent}`;
+    const link = `${location.origin}${location.pathname.replace(
+      "send.html",
+      "receive.html"
+    )}?room=${roomIdSpan.textContent}`;
     navigator.clipboard.writeText(link);
     alert("Link copied!");
   };
@@ -209,7 +235,7 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-  ]
+    ],
   });
 
   pc.onicecandidate = (e) => {
@@ -238,7 +264,9 @@ async function makeOffer() {
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
+    channel.send(
+      JSON.stringify({ meta: true, name: file.name, size: file.size })
+    );
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
