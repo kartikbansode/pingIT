@@ -47,14 +47,26 @@ ws.onopen = () => {
   log("READY");
   if (createBtn) createBtn.disabled = false;
   if (joinBtn) joinBtn.disabled = false;
+
+  // ✅ Auto-join if QR was scanned before WS ready
+  if (pendingJoinCode) {
+    roomId = pendingJoinCode;
+    ws.send(JSON.stringify({ type: "join", roomId }));
+    log("Joining room...");
+    pendingJoinCode = null;
+  }
 };
+
 
 ws.onerror = () => log("WebSocket error");
 ws.onclose = () => log("WebSocket closed");
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
+  return Array.from(
+    { length: len },
+    () => c[Math.floor(Math.random() * c.length)]
+  ).join("");
 }
 
 // ---------- SEND ----------
@@ -91,7 +103,11 @@ if (isSendPage) {
 
     let total = 0;
     filesToSend.forEach((f) => (total += f.size));
-    sendSummary.textContent = `${filesToSend.length} files • ${(total / 1024 / 1024).toFixed(1)} MB`;
+    sendSummary.textContent = `${filesToSend.length} files • ${(
+      total /
+      1024 /
+      1024
+    ).toFixed(1)} MB`;
 
     filesToSend.forEach((f) => {
       const tr = document.createElement("tr");
@@ -113,7 +129,10 @@ if (isSendPage) {
     roomIdSpan.textContent = roomId;
     roomBox.classList.remove("hidden");
 
-    const url = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomId}`;
+    const url = `${location.origin}${location.pathname.replace(
+      "send.html",
+      "receive.html"
+    )}?room=${roomId}`;
     document.getElementById("qr").innerHTML = "";
     new QRCode(document.getElementById("qr"), url);
 
@@ -125,13 +144,33 @@ if (isSendPage) {
   copyBtn.onclick = () => navigator.clipboard.writeText(roomIdSpan.textContent);
 
   copyLinkBtn.onclick = () => {
-    const link = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomIdSpan.textContent}`;
+    const link = `${location.origin}${location.pathname.replace(
+      "send.html",
+      "receive.html"
+    )}?room=${roomIdSpan.textContent}`;
     navigator.clipboard.writeText(link);
   };
 }
 
 // ---------- RECEIVE (OTP) ----------
+// ---------- RECEIVE (OTP) ----------
+let pendingJoinCode = null;
+
 if (isRecvPage) {
+  const otpWrap = document.getElementById("otpWrap");
+
+  function getOTPCode() {
+    let code = "";
+    otpInputs.forEach((i) => (code += i.value.toUpperCase()));
+    return code;
+  }
+
+  function shakeOTP() {
+    otpWrap.classList.add("shake");
+    setTimeout(() => otpWrap.classList.remove("shake"), 400);
+  }
+
+  // Input & navigation
   otpInputs.forEach((input, idx) => {
     input.addEventListener("input", () => {
       input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -147,29 +186,56 @@ if (isRecvPage) {
     });
   });
 
-  joinBtn.onclick = () => {
-    let code = "";
-    otpInputs.forEach((i) => (code += i.value.toUpperCase()));
-    roomId = code;
+  // ✅ Paste support (Ctrl+V)
+  otpWrap.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData)
+      .getData("text")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
 
-    if (roomId.length !== otpInputs.length) {
-      alert("Enter complete room code");
+    otpInputs.forEach((inp, i) => {
+      inp.value = text[i] || "";
+    });
+
+    if (text.length >= otpInputs.length) {
+      joinBtn.click();
+    }
+  });
+
+  function tryJoin() {
+    const code = getOTPCode();
+    if (code.length !== otpInputs.length) {
+      shakeOTP();
       return;
     }
 
-    ws.send(JSON.stringify({ type: "join", roomId }));
-    log("Joining room...");
+    roomId = code;
+
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "join", roomId }));
+      log("Joining room...");
+    } else {
+      pendingJoinCode = roomId;
+      log("Waiting for connection...");
+    }
+  }
+
+  joinBtn.onclick = () => {
+    tryJoin();
   };
 
+  // ✅ Auto-fill from QR
   const params = new URLSearchParams(location.search);
   if (params.get("room")) {
     const code = params.get("room").toUpperCase();
     if (code.length === otpInputs.length) {
       otpInputs.forEach((inp, i) => (inp.value = code[i] || ""));
-      setTimeout(() => joinBtn.click(), 600);
+      pendingJoinCode = code;
     }
   }
 
+  // Download all
   downloadAllBtn.onclick = async () => {
     const zip = new JSZip();
     recvFiles.forEach((f) => zip.file(f.name, f.blob));
@@ -232,7 +298,7 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-  ]
+    ],
   });
 
   pc.onicecandidate = (e) => {
@@ -261,7 +327,9 @@ async function makeOffer() {
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
+    channel.send(
+      JSON.stringify({ meta: true, name: file.name, size: file.size })
+    );
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));

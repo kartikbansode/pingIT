@@ -352,3 +352,17 @@ button:hover:not(:disabled) {
     font-size: 20px;
   }
 }
+
+/* Shake animation for wrong OTP */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+  100% { transform: translateX(0); }
+}
+
+.otp-wrap.shake {
+  animation: shake 0.4s;
+}
