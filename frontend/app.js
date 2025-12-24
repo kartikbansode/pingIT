@@ -1,19 +1,6 @@
 console.log("pingIT loaded");
 
-const WS_URL =
-  (location.protocol === "https:" ? "wss://" : "ws://") +
-  "pingit-xyf7.onrender.com";
-
-ws.onerror = (e) => {
-  console.error("WebSocket error", e);
-  log("WebSocket connection failed");
-};
-
-ws.onclose = () => {
-  console.warn("WebSocket closed");
-  log("WebSocket closed");
-};
-
+const WS_URL = "wss://pingit-xyf7.onrender.com";
 const ws = new WebSocket(WS_URL);
 
 let pc, channel;
@@ -55,6 +42,16 @@ function log(m) {
   if (status) status.textContent = m;
 }
 
+// Enable buttons when WS connects
+ws.onopen = () => {
+  log("READY");
+  if (createBtn) createBtn.disabled = false;
+  if (joinBtn) joinBtn.disabled = false;
+};
+
+ws.onerror = () => log("WebSocket error");
+ws.onclose = () => log("WebSocket closed");
+
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   return Array.from(
@@ -62,13 +59,6 @@ function genRoomId(len = 6) {
     () => c[Math.floor(Math.random() * c.length)]
   ).join("");
 }
-
-// ---------- Enable buttons when WS ready ----------
-ws.onopen = () => {
-  log("READY");
-  if (createBtn) createBtn.disabled = false;
-  if (joinBtn) joinBtn.disabled = false;
-};
 
 // ---------- SEND ----------
 if (isSendPage) {
@@ -82,17 +72,6 @@ if (isSendPage) {
     openPicker();
   };
   dropZone.onclick = () => openPicker();
-
-  dropZone.ondragover = (e) => {
-    e.preventDefault();
-    dropZone.classList.add("drag");
-  };
-  dropZone.ondragleave = () => dropZone.classList.remove("drag");
-  dropZone.ondrop = (e) => {
-    e.preventDefault();
-    dropZone.classList.remove("drag");
-    handleFiles(e.dataTransfer.files);
-  };
 
   fileInput.onchange = () => handleFiles(fileInput.files);
 
@@ -139,21 +118,16 @@ if (isSendPage) {
 
     await createPeer();
     ws.send(JSON.stringify({ type: "join", roomId }));
-    log("ROOM CREATED. WAITING...");
+    log("Room created. Waiting...");
   };
 
-  copyBtn.onclick = () => {
-    navigator.clipboard.writeText(roomIdSpan.textContent);
-    alert("Code copied!");
-  };
-
+  copyBtn.onclick = () => navigator.clipboard.writeText(roomIdSpan.textContent);
   copyLinkBtn.onclick = () => {
     const link = `${location.origin}${location.pathname.replace(
       "send.html",
       "receive.html"
     )}?room=${roomIdSpan.textContent}`;
     navigator.clipboard.writeText(link);
-    alert("Link copied!");
   };
 }
 
@@ -163,7 +137,7 @@ if (isRecvPage) {
     roomId = roomInput.value.trim().toUpperCase();
     if (!roomId) return alert("Enter room code");
     ws.send(JSON.stringify({ type: "join", roomId }));
-    log("JOINING ROOM...");
+    log("Joining room...");
   };
 
   const params = new URLSearchParams(location.search);
@@ -176,7 +150,6 @@ if (isRecvPage) {
     const zip = new JSZip();
     recvFiles.forEach((f) => zip.file(f.name, f.blob));
     const blob = await zip.generateAsync({ type: "blob" });
-
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "pingIT.zip";
@@ -270,7 +243,7 @@ async function sendFiles() {
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
-  log("ALL FILES SENT");
+  log("All files sent");
 }
 
 function sendOneFile(file) {
