@@ -44,11 +44,10 @@ function log(m) {
 
 // Enable buttons when WS connects
 ws.onopen = () => {
-  log("READY");
+  log("Connected to server");
   if (createBtn) createBtn.disabled = false;
   if (joinBtn) joinBtn.disabled = false;
 
-  // ✅ Auto-join if QR was scanned before WS ready
   if (pendingJoinCode) {
     roomId = pendingJoinCode;
     ws.send(JSON.stringify({ type: "join", roomId }));
@@ -56,6 +55,7 @@ ws.onopen = () => {
     pendingJoinCode = null;
   }
 };
+
 
 ws.onerror = () => log("WebSocket error");
 ws.onclose = () => log("WebSocket closed");
@@ -263,9 +263,14 @@ ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
   if (data.roomId !== roomId) return;
 
-  if (data.type === "join" && isSender) await makeOffer();
+  if (data.type === "join" && isSender) {
+    log("Receiver connected. Creating offer...");
+    await makeOffer();
+  }
 
   if (data.type === "offer" && !isSender) {
+    log("Offer received. Connecting to sender...");
+
     await createPeer();
     await pc.setRemoteDescription(data.offer);
     const answer = await pc.createAnswer();
@@ -321,6 +326,7 @@ async function createPeer() {
   pc.ondatachannel = (e) => {
     channel = e.channel;
     channel.binaryType = "arraybuffer";
+    log("Connected to sender. Waiting for files...");
     setupReceiver();
   };
 }
@@ -328,7 +334,10 @@ async function createPeer() {
 async function makeOffer() {
   channel = pc.createDataChannel("file");
   channel.binaryType = "arraybuffer";
-  channel.onopen = () => sendFiles();
+  channel.onopen = () => {
+    log("Connected to receiver. Starting transfer...");
+    sendFiles();
+  };
 
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
@@ -338,16 +347,15 @@ async function makeOffer() {
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    while (channel.bufferedAmount > 4 * 1024 * 1024) {
-      await new Promise(r => setTimeout(r, 50));
-    }
-    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
+    log(`Sending: ${file.name}`);
+    channel.send(
+      JSON.stringify({ meta: true, name: file.name, size: file.size })
+    );
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
   log("All files sent");
 }
-
 
 function sendOneFile(file) {
   return new Promise((resolve) => {
@@ -392,7 +400,6 @@ function sendOneFile(file) {
   });
 }
 
-
 // ---------- Receive ----------
 function setupReceiver() {
   let currentFile = null;
@@ -407,7 +414,7 @@ function setupReceiver() {
         currentFile = msg;
         buffers = [];
         received = 0;
-        log(`Receiving ${msg.name}...`);
+        log(`Receiving: ${msg.name}`);
         recvTableWrap.classList.remove("hidden");
         recvSummary.classList.remove("hidden");
       }
