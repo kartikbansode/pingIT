@@ -366,3 +366,6 @@ button:hover:not(:disabled) {
 .otp-wrap.shake {
   animation: shake 0.4s;
 }
+::-webkit-scrollbar {
+    display: none;
+}
