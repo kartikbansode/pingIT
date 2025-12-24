@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms & Conditions – pingIT</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        .terms-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .terms-container h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .project-info {
+            text-align: center;
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .terms-container h2 {
+            margin-top: 24px;
+            font-size: 18px;
+            color: #93c5fd;
+        }
+
+        .terms-container p,
+        .terms-container li {
+            color: #cbd5f5;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .terms-container ul {
+            padding-left: 20px;
+        }
+
+        .terms-footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .terms-footer a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .terms-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">pingIT</div>
+        <div class="subtitle">made by kartik</div> <button class="backBtn" onclick="history.back()"
+            style="position: absolute; top: 16px; left: 16px;">
+            <i class="fa-solid fa-angle-left"></i>
+            <span>Back</span>
+        </button>
+    </header>
+
+
+
+    <main class="terms-container">
+        <h1>Terms & Conditions</h1>
+
+        <div class="project-info">
+            <div><strong>Version:</strong> v1.0.</div>
+            <div><strong>Published:</strong> 24 December 2025</div>
+            <div><strong>Author:</strong> Kartik</div>
+            <div><strong>Github:</strong> https://github.com/kartikbansode</div>
+            <div><strong>Contact:</strong> bansodekartik00@gmail.com</div>
+
+        </div>
+
+        <p>
+            pingIT is a personal, experimental project created for learning and demonstration purposes.
+            It is not a commercial service. By accessing or using this website, you automatically agree
+            to the terms outlined below.
+        </p>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>
+            By using pingIT, you acknowledge that you have read, understood, and agree to these Terms
+            and Conditions. If you do not agree, please discontinue use of this website immediately.
+        </p>
+
+        <h2>2. Project Nature</h2>
+        <p>
+            pingIT is developed and maintained by an individual as a personal project. The creator does
+            not operate pingIT as a managed service and does not provide any guarantees regarding uptime,
+            performance, reliability, or security.
+        </p>
+
+        <h2>3. No Control Over Content</h2>
+        <p>
+            pingIT enables direct peer-to-peer file transfers between users. The creator does not
+            control, monitor, store, or moderate the content shared using this project and is not
+            responsible for any files transferred by users.
+        </p>
+
+        <h2>4. No Data Responsibility</h2>
+        <p>
+            pingIT does not store your files on any server. However, you understand that no system is
+            completely secure. The creator is not responsible for any data loss, data leakage, security
+            breach, or damages that may occur while using this project.
+        </p>
+
+        <h2>5. Use at Your Own Risk</h2>
+        <p>
+            You use pingIT entirely at your own risk. The creator shall not be held liable for any direct,
+            indirect, incidental, or consequential damages arising from the use or inability to use
+            this project.
+        </p>
+
+        <h2>6. Prohibited Use</h2>
+        <ul>
+            <li>You agree not to use pingIT for illegal activities.</li>
+            <li>You must not share malicious, harmful, or copyrighted content without permission.</li>
+            <li>You are solely responsible for complying with applicable laws.</li>
+        </ul>
+
+        <h2>7. No Warranty</h2>
+        <p>
+            This project is provided "as is" without warranties of any kind, express or implied,
+            including but not limited to fitness for a particular purpose and non-infringement.
+        </p>
+
+        <h2>8. Changes to Terms</h2>
+        <p>
+            These terms may be updated at any time without prior notice. Continued use of pingIT after
+            changes implies acceptance of the revised terms.
+        </p>
+
+        <h2>9. Termination</h2>
+        <p>
+            The creator reserves the right to modify or discontinue this project at any time without
+            notice or liability.
+        </p>
+
+        <h2>10. Contact</h2>
+        <p>
+            For any questions or concerns regarding this project, you may contact the author using the
+            details provided above.
+        </p>
+
+        <div class="terms-footer">
+            <p>© <span id="year"></span> pingIT. project by Kartik.</p>
+            <button class="backBtn" onclick="location.href='index.html'">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </button>
+        </div>
+    </main>
+
+    <footer>
+        <div>Experimental • Use at your own risk</div>
+    </footer>
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+        document.getElementById("date").textContent = new Date().toLocaleDateString();
+    </script>
+
+</body>
+
+</html>

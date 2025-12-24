@@ -36,7 +36,7 @@ header {
   gap: 24px;
   justify-content: center;
   align-items: center;
-  
+
 }
 
 .home-btn {
@@ -344,7 +344,7 @@ button:hover:not(:disabled) {
 
 .otp:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.3);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
 }
 
 @media (max-width: 600px) {
@@ -357,18 +357,56 @@ button:hover:not(:disabled) {
 
 /* Shake animation for wrong OTP */
 @keyframes shake {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-6px); }
-  80% { transform: translateX(6px); }
-  100% { transform: translateX(0); }
-  
+  0% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-6px);
+  }
+
+  40% {
+    transform: translateX(6px);
+  }
+
+  60% {
+    transform: translateX(-6px);
+  }
+
+  80% {
+    transform: translateX(6px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+
 }
 
 .otp-wrap.shake {
   animation: shake 0.4s;
 }
+
 ::-webkit-scrollbar {
-    display: none;
+  display: none;
+}
+
+.terms {
+  color: #94a3b8;
+  font-size: 14px;
+  text-decoration: underline;
+  text-align: center;
+  justify-content: center;
+  display: block;
+  margin: auto;
+  margin-bottom: 25px;
+}
+
+.terms1 {
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+  justify-content: center;
+  display: block;
+  margin: auto;
 }
