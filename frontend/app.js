@@ -30,7 +30,7 @@ const copyBtn = document.getElementById("copyBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
 // Receive UI
-const roomInput = document.getElementById("roomInput");
+const otpInputs = document.querySelectorAll(".otp");
 const joinBtn = document.getElementById("joinBtn");
 const recvList = document.getElementById("recvList");
 const recvSummary = document.getElementById("recvSummary");
@@ -135,16 +135,26 @@ if (isSendPage) {
 // ---------- RECEIVE ----------
 if (isRecvPage) {
   joinBtn.onclick = () => {
-    roomId = roomInput.value.trim().toUpperCase();
-    if (!roomId) return alert("Enter room code");
+    let code = "";
+    otpInputs.forEach((i) => (code += i.value.toUpperCase()));
+    roomId = code;
+
+    if (roomId.length !== 6) {
+      alert("Enter complete 6-digit code");
+      return;
+    }
+
     ws.send(JSON.stringify({ type: "join", roomId }));
     log("Joining room...");
   };
 
   const params = new URLSearchParams(location.search);
   if (params.get("room")) {
-    roomInput.value = params.get("room").toUpperCase();
-    setTimeout(() => joinBtn.click(), 600);
+    const code = params.get("room").toUpperCase();
+    if (code.length === 6) {
+      otpInputs.forEach((inp, i) => (inp.value = code[i] || ""));
+      setTimeout(() => joinBtn.click(), 600);
+    }
   }
 
   downloadAllBtn.onclick = async () => {
@@ -157,6 +167,20 @@ if (isRecvPage) {
     a.click();
   };
 }
+otpInputs.forEach((input, idx) => {
+  input.addEventListener("input", () => {
+    input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (input.value && idx < otpInputs.length - 1) {
+      otpInputs[idx + 1].focus();
+    }
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace" && !input.value && idx > 0) {
+      otpInputs[idx - 1].focus();
+    }
+  });
+});
 
 // ---------- WebSocket signaling ----------
 ws.onmessage = async (msg) => {
