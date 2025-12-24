@@ -7,9 +7,9 @@ This is a personal project created for learning and demonstration purposes.
 
 ---
 
-## Version
-
-**v1.0**
+>**Version:** 1.0
+>
+>**Release Date:** December 24, 2025  
 
 ---
 
@@ -22,10 +22,8 @@ This is a personal project created for learning and demonstration purposes.
 - QR code for quick connection on mobile
 - Drag and drop file selection
 - Live per-file progress on sender and receiver
-- OTP-style room code input for receivers
 - Download individual files or all as ZIP
 - Responsive UI for desktop and mobile
-- Modern UI with Font Awesome icons
 
 ---
 
@@ -50,27 +48,23 @@ Once connected, data flows directly from sender to receiver.
 - JSZip
 - Hosted frontend on GitHub Pages
 - Signaling server on Render
+- 
+---
+
+## Screenshots
+
+<img width="1364" height="637" alt="image" src="https://github.com/user-attachments/assets/0591e9b6-a566-47b3-b843-4a70fe982826" />
+<img width="1363" height="633" alt="image" src="https://github.com/user-attachments/assets/8ff23fa8-ad96-49c6-b210-b2b4c94d0cc4" />
+<img width="1365" height="639" alt="image" src="https://github.com/user-attachments/assets/f4613157-747a-41a6-a8b8-57951f27ef56" />
 
 ---
 
-## Usage
+## License
 
-1. Open pingIT in your browser.
-2. Click **Send Files** to select files and create a room.
-3. Share the room code or QR code with the receiver.
-4. Receiver opens pingIT, clicks **Receive Files**, and enters the code.
-5. Files transfer directly between devices.
+MIT License © 2025 [Kartik Bansode](https://github.com/kartikbansode)
 
 ---
 
-## Project Structure
-
-```text
-frontend/
-  index.html
-  send.html
-  receive.html
-  terms.html
-  style.css
-  app.js
-README.md
+## Contact
+- Email: bansodekartik00@gmail.com
+- Github: https://github.com/kartikbansode
