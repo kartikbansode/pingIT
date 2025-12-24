@@ -1,6 +1,7 @@
 console.log("pingIT loaded");
 
-const WS_URL = "wss://pingit-xyf7.onrender.com";
+const CONFIG = window.PINGIT_CONFIG || {};
+const WS_URL = CONFIG.WS_URL || "ws://localhost:3000";
 const ws = new WebSocket(WS_URL);
 
 let pc, channel;
@@ -55,7 +56,6 @@ ws.onopen = () => {
     pendingJoinCode = null;
   }
 };
-
 
 ws.onerror = () => log("WebSocket error");
 ws.onclose = () => log("WebSocket closed");
@@ -290,30 +290,8 @@ ws.onmessage = async (msg) => {
 // ---------- WebRTC ----------
 async function createPeer() {
   pc = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: "stun:stun.relay.metered.ca:80",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:80",
-        username: "3925f5a71308b78d75a1f5fd",
-        credential: "kWUIj7VlrSk9/9+D",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:80?transport=tcp",
-        username: "3925f5a71308b78d75a1f5fd",
-        credential: "kWUIj7VlrSk9/9+D",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:443",
-        username: "3925f5a71308b78d75a1f5fd",
-        credential: "kWUIj7VlrSk9/9+D",
-      },
-      {
-        urls: "turns:global.relay.metered.ca:443?transport=tcp",
-        username: "3925f5a71308b78d75a1f5fd",
-        credential: "kWUIj7VlrSk9/9+D",
-      },
+    iceServers: CONFIG.ICE_SERVERS || [
+      { urls: "stun:stun.l.google.com:19302" },
     ],
   });
 
