@@ -1,7 +1,6 @@
 console.log("pingIT loaded");
 
-const CONFIG = window.PINGIT_CONFIG || {};
-const WS_URL = CONFIG.WS_URL || "ws://localhost:3000";
+const WS_URL = "wss://(render_url_here)"; // (Paste you render websocket URL here without https:// )
 const ws = new WebSocket(WS_URL);
 
 let pc, channel;
@@ -56,6 +55,7 @@ ws.onopen = () => {
     pendingJoinCode = null;
   }
 };
+
 
 ws.onerror = () => log("WebSocket error");
 ws.onclose = () => log("WebSocket closed");
@@ -288,10 +288,32 @@ ws.onmessage = async (msg) => {
 };
 
 // ---------- WebRTC ----------
-async function createPeer() {
+async function createPeer() { // Paste your STUN and TURN server URLs and credentials below
   pc = new RTCPeerConnection({
-    iceServers: CONFIG.ICE_SERVERS || [
-      { urls: "stun:stun.l.google.com:19302" },
+    iceServers: [
+      {
+        urls: "(Paste your STUN server URL here)",
+      },
+      {
+        urls: "(Paste your STUN server URL here)",
+        username: "(Paste your TURN username here)",
+        credential: "(Paste your TURN credential here)",
+      },
+      {
+        urls: "(Paste your STUN server URL here)?transport=tcp",
+        username: "(Paste your TURN username here)",
+        credential: "(Paste your TURN credential here)",
+      },
+      {
+        urls: "(Paste your STUN server URL here)",
+        username: "(Paste your TURN username here)",
+        credential: "(Paste your TURN credential here)",
+      },
+      {
+        urls: "(Paste your STUN server URL here)?transport=tcp",
+        username: "(Paste your TURN username here)",
+        credential: "(Paste your TURN credential here)",
+      },
     ],
   });
 
