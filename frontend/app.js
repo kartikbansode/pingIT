@@ -338,35 +338,60 @@ async function makeOffer() {
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    channel.send(
-      JSON.stringify({ meta: true, name: file.name, size: file.size })
-    );
+    while (channel.bufferedAmount > 4 * 1024 * 1024) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
   log("All files sent");
 }
 
+
 function sendOneFile(file) {
   return new Promise((resolve) => {
-    const CHUNK = 64 * 1024;
+    const CHUNK = 32 * 1024; // smaller chunks = safer
     let offset = 0;
     const reader = new FileReader();
 
+    const HIGH_WATER_MARK = 8 * 1024 * 1024; // 8 MB buffer limit
+
+    channel.bufferedAmountLowThreshold = 2 * 1024 * 1024; // resume at 2 MB
+
+    function readSlice(o) {
+      reader.readAsArrayBuffer(file.slice(o, o + CHUNK));
+    }
+
     reader.onload = (e) => {
-      channel.send(e.target.result);
-      offset += e.target.result.byteLength;
+      // ✅ If buffer is full, wait
+      if (channel.bufferedAmount > HIGH_WATER_MARK) {
+        channel.onbufferedamountlow = () => {
+          channel.onbufferedamountlow = null;
+          channel.send(e.target.result);
+          afterSend(e.target.result.byteLength);
+        };
+      } else {
+        channel.send(e.target.result);
+        afterSend(e.target.result.byteLength);
+      }
+    };
+
+    function afterSend(sentBytes) {
+      offset += sentBytes;
+
       const pct = (offset / file.size) * 100;
       const bar = document.querySelector(`#send-${CSS.escape(file.name)} span`);
       if (bar) bar.style.width = pct + "%";
+
       if (offset < file.size) readSlice(offset);
       else resolve();
-    };
+    }
 
-    const readSlice = (o) => reader.readAsArrayBuffer(file.slice(o, o + CHUNK));
     readSlice(0);
   });
 }
+
 
 // ---------- Receive ----------
 function setupReceiver() {
