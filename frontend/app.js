@@ -405,53 +405,78 @@ function setupReceiver() {
   let currentFile = null;
   let buffers = [];
   let received = 0;
+  let currentRow = null;
 
   channel.onmessage = (e) => {
+    // ----- Control messages -----
     if (typeof e.data === "string") {
       const msg = JSON.parse(e.data);
 
+      // 📄 New file incoming
       if (msg.meta) {
         currentFile = msg;
         buffers = [];
         received = 0;
+
         log(`Receiving: ${msg.name}`);
         recvTableWrap.classList.remove("hidden");
         recvSummary.classList.remove("hidden");
+
+        // ✅ Create row immediately with progress bar
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><i class="fa-solid fa-file"></i> ${msg.name}</td>
+          <td>${(msg.size / 1024 / 1024).toFixed(1)} MB</td>
+          <td><div class="progress"><span></span></div></td>
+        `;
+        recvList.appendChild(tr);
+        currentRow = tr;
+
+        return;
       }
 
+      // ✅ All files done
       if (msg.done) {
         log("All files received");
         recvSummary.textContent = `${recvFiles.length} files received`;
+        return;
       }
 
       return;
     }
 
+    // ----- Binary chunks -----
     buffers.push(e.data);
     received += e.data.byteLength;
 
+    // ✅ Update progress live
+    if (currentFile && currentRow) {
+      const pct = (received / currentFile.size) * 100;
+      const bar = currentRow.querySelector(".progress span");
+      if (bar) bar.style.width = pct + "%";
+    }
+
+    // ✅ File completed
     if (currentFile && received >= currentFile.size) {
       const blob = new Blob(buffers);
       const url = URL.createObjectURL(blob);
+
       recvFiles.push({ name: currentFile.name, blob });
 
-      const tr = document.createElement("tr");
+      // Replace progress with download button
       const a = document.createElement("a");
       a.href = url;
       a.download = currentFile.name;
       a.innerHTML = `<i class="fa-solid fa-download"></i> Download`;
 
-      tr.innerHTML = `
-        <td><i class="fa-solid fa-file"></i> ${currentFile.name}</td>
-        <td>${(currentFile.size / 1024 / 1024).toFixed(1)} MB</td>
-        <td></td>
-      `;
-      tr.children[2].appendChild(a);
-      recvList.appendChild(tr);
+      currentRow.children[2].innerHTML = "";
+      currentRow.children[2].appendChild(a);
 
       recvSummary.textContent = `${recvFiles.length} files received`;
       downloadAllBtn.classList.remove("hidden");
+
       currentFile = null;
+      currentRow = null;
     }
   };
 }
