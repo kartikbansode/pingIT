@@ -57,7 +57,6 @@ ws.onopen = () => {
   }
 };
 
-
 ws.onerror = () => log("WebSocket error");
 ws.onclose = () => log("WebSocket closed");
 
@@ -166,22 +165,33 @@ if (isRecvPage) {
   }
 
   function shakeOTP() {
+    otpWrap.classList.remove("shake");
+    // force reflow so animation restarts every time
+    void otpWrap.offsetWidth;
     otpWrap.classList.add("shake");
-    setTimeout(() => otpWrap.classList.remove("shake"), 400);
   }
 
   // Input & navigation
   otpInputs.forEach((input, idx) => {
     input.addEventListener("input", () => {
-      input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-      if (input.value && idx < otpInputs.length - 1) {
+      let val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+      // ✅ Keep only ONE character
+      if (val.length > 1) val = val.slice(-1);
+      input.value = val;
+
+      if (val && idx < otpInputs.length - 1) {
         otpInputs[idx + 1].focus();
       }
     });
 
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Backspace" && !input.value && idx > 0) {
-        otpInputs[idx - 1].focus();
+      if (e.key === "Backspace") {
+        if (!input.value && idx > 0) {
+          otpInputs[idx - 1].focus();
+        } else {
+          input.value = "";
+        }
       }
     });
   });
@@ -205,6 +215,7 @@ if (isRecvPage) {
 
   function tryJoin() {
     const code = getOTPCode();
+
     if (code.length !== otpInputs.length) {
       shakeOTP();
       return;
