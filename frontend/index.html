@@ -9,15 +9,15 @@
 <body>
 <header>
   <div class="logo">pingIT</div>
-  <div class="subtitle">made by Kartik❤️</div>
+  <div class="subtitle">Fast peer-to-peer file sharing</div>
 </header>
 
 <main class="container">
 
   <!-- HOME -->
   <section id="home" class="home">
-    <button id="goSend" class="primary big">SEND</button>
-    <button id="goReceive" class="secondary big">RECEIVE</button>
+    <button id="goSend" class="home-btn primary">SEND</button>
+    <button id="goReceive" class="home-btn secondary">RECEIVE</button>
   </section>
 
   <!-- SEND -->
@@ -46,12 +46,15 @@
       </table>
     </div>
 
-    <button id="createBtn" disabled class="primary">SEND</button>
+    <button id="createBtn" disabled class="primary big-action">Create Room</button>
 
     <div id="roomBox" class="room-box hidden">
-      <div class="room-info">
-        Code: <strong id="roomId"></strong>
-        <button id="copyBtn">Copy</button>
+      <div class="room-code">
+        <span id="roomId"></span>
+      </div>
+      <div class="room-actions">
+        <button id="copyBtn">Copy Code</button>
+        <button id="copyLinkBtn">Copy Link</button>
       </div>
       <div id="qr" class="qr-box"></div>
     </div>
@@ -63,7 +66,7 @@
     <h2>Receive Files</h2>
 
     <input id="roomInput" placeholder="Enter Code"/>
-    <button id="joinBtn" disabled class="primary">RECEIVE</button>
+    <button id="joinBtn" disabled class="primary big-action">Join Room</button>
 
     <div class="summary" id="recvSummary"></div>
 
@@ -80,7 +83,7 @@
       </table>
     </div>
 
-    <button id="downloadAllBtn" class="hidden secondary">⬇ Download All</button>
+    <button id="downloadAllBtn" class="hidden secondary">Download All</button>
   </section>
 
 </main>

@@ -9,7 +9,7 @@ let roomId = "";
 let isSender = false;
 let recvFiles = [];
 
-// UI navigation
+// Navigation UI
 const home = document.getElementById("home");
 const sendPanel = document.getElementById("sendPanel");
 const recvPanel = document.getElementById("recvPanel");
@@ -31,6 +31,7 @@ const joinBtn = document.getElementById("joinBtn");
 const roomBox = document.getElementById("roomBox");
 const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
 const status = document.getElementById("status");
 
@@ -51,6 +52,7 @@ function showReceive() {
   recvPanel.classList.remove("hidden");
 }
 
+// Bind after DOM ready
 goSend.onclick = () => showSend();
 goReceive.onclick = () => showReceive();
 backFromSend.onclick = () => showHome();
@@ -224,6 +226,12 @@ joinBtn.onclick = () => {
 copyBtn.onclick = () => {
   navigator.clipboard.writeText(roomIdSpan.textContent);
   alert("Code copied!");
+};
+
+copyLinkBtn.onclick = () => {
+  const link = `${location.origin}${location.pathname}?room=${roomIdSpan.textContent}`;
+  navigator.clipboard.writeText(link);
+  alert("Link copied!");
 };
 
 // ---------- Auto join from QR ----------
