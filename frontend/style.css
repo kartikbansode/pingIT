@@ -51,7 +51,7 @@ header {
 
 /* Layout */
 .container {
-  max-width: min(600px, 90%);
+  max-width: min(600px, 99%);
   margin: auto;
   padding: 16px;
 }
@@ -163,6 +163,8 @@ button:disabled {
   font-size: 13px;
   color: #94a3b8;
   margin: 6px 0;
+  text-align: center;
+  justify-content: center;
 }
 
 /* Table */
@@ -361,6 +363,7 @@ button:hover:not(:disabled) {
   60% { transform: translateX(-6px); }
   80% { transform: translateX(6px); }
   100% { transform: translateX(0); }
+  
 }
 
 .otp-wrap.shake {
