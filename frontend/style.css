@@ -5,6 +5,7 @@ body {
   font-family: system-ui, Arial, sans-serif;
   background: #0b1020;
   color: #e5e7eb;
+  overflow-x: hidden;
 }
 
 header {
@@ -16,13 +17,15 @@ header {
 .logo { font-size: 24px; font-weight: 700; }
 .subtitle { color: #94a3b8; font-size: 14px; }
 
+/* HOME */
 .home {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
 .home-btn {
@@ -35,6 +38,7 @@ header {
   cursor: pointer;
 }
 
+/* Layout */
 .container {
   max-width: 900px;
   margin: auto;
@@ -49,15 +53,22 @@ header {
   margin-top: 12px;
 }
 
+/* Back button */
 .backBtn {
   background: transparent;
   border: none;
-  color: #93c5fd;
+  color: #60a5fa;
   font-size: 14px;
   cursor: pointer;
-  margin-bottom: 6px;
+  padding: 4px 0;
+  margin-bottom: 10px;
+  text-align: left;
+  width: auto;
+  display: inline-block;
 }
+.backBtn:hover { text-decoration: underline; }
 
+/* Inputs & buttons */
 button, input {
   width: 100%;
   padding: 12px;
@@ -87,6 +98,7 @@ button:disabled { background: #1e293b; }
   padding: 14px;
 }
 
+/* Drop zone */
 .drop-zone {
   border: 2px dashed #334155;
   border-radius: 12px;
@@ -100,12 +112,14 @@ button:disabled { background: #1e293b; }
   border-color: #22c55e;
 }
 
+/* Summary */
 .summary {
   font-size: 13px;
   color: #94a3b8;
   margin: 6px 0;
 }
 
+/* Table */
 .table-wrap {
   max-height: 240px;
   overflow-y: auto;
@@ -124,6 +138,7 @@ button:disabled { background: #1e293b; }
 }
 .file-table th { color: #94a3b8; }
 
+/* Progress */
 .progress {
   height: 6px;
   background: #1e293b;
@@ -137,6 +152,7 @@ button:disabled { background: #1e293b; }
   width: 0%;
 }
 
+/* Room box */
 .room-box {
   margin-top: 12px;
   background: #0f172a;
@@ -166,7 +182,7 @@ button:disabled { background: #1e293b; }
   height: 140px;
 }
 
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 footer {
   text-align: center;

@@ -13,16 +13,16 @@
 </header>
 
 <main class="container">
-
 <section class="panel">
+
   <button class="backBtn" onclick="location.href='index.html'">← Back</button>
 
   <input id="roomInput" placeholder="Enter Code"/>
   <button id="joinBtn" disabled class="primary big-action">Join Room</button>
 
-  <div class="summary" id="recvSummary"></div>
+  <div class="summary hidden" id="recvSummary"></div>
 
-  <div class="table-wrap">
+  <div class="table-wrap hidden" id="recvTableWrap">
     <table class="file-table">
       <thead>
         <tr>
@@ -36,8 +36,8 @@
   </div>
 
   <button id="downloadAllBtn" class="hidden secondary">Download All</button>
-</section>
 
+</section>
 </main>
 
 <footer><div id="status">Connecting...</div></footer>

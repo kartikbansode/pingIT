@@ -13,26 +13,28 @@ let recvFiles = [];
 const isSendPage = !!document.getElementById("fileInput");
 const isRecvPage = !!document.getElementById("roomInput");
 
-// Common UI
+// Common
 const status = document.getElementById("status");
 
-// SEND UI
+// Send UI
 const fileInput = document.getElementById("fileInput");
 const browseBtn = document.getElementById("browseBtn");
 const dropZone = document.getElementById("dropZone");
 const sendList = document.getElementById("sendList");
 const sendSummary = document.getElementById("sendSummary");
+const sendTableWrap = document.getElementById("sendTableWrap");
 const createBtn = document.getElementById("createBtn");
 const roomBox = document.getElementById("roomBox");
 const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
-// RECEIVE UI
+// Receive UI
 const roomInput = document.getElementById("roomInput");
 const joinBtn = document.getElementById("joinBtn");
 const recvList = document.getElementById("recvList");
 const recvSummary = document.getElementById("recvSummary");
+const recvTableWrap = document.getElementById("recvTableWrap");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
 
 function log(m) {
@@ -74,6 +76,8 @@ if (isSendPage) {
   function handleFiles(list) {
     filesToSend = Array.from(list);
     sendList.innerHTML = "";
+    sendTableWrap.classList.remove("hidden");
+    sendSummary.classList.remove("hidden");
 
     let total = 0;
     filesToSend.forEach((f) => (total += f.size));
@@ -271,6 +275,8 @@ function setupReceiver() {
         buffers = [];
         received = 0;
         log(`Receiving ${msg.name}...`);
+        recvTableWrap.classList.remove("hidden");
+        recvSummary.classList.remove("hidden");
       }
       return;
     }
