@@ -1,6 +1,6 @@
 console.log("pingIT loaded");
 
-const WS_URL = "wss://(render_url_here)"; // (Paste you render websocket URL here without https:// )
+const WS_URL = "wss://pingit-xyf7.onrender.com"; // (Paste you render websocket URL here without https:// )
 const ws = new WebSocket(WS_URL);
 
 let pc, channel;
@@ -290,31 +290,7 @@ ws.onmessage = async (msg) => {
 // ---------- WebRTC ----------
 async function createPeer() { // Paste your STUN and TURN server URLs and credentials below
   pc = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: "(Paste your STUN server URL here)",
-      },
-      {
-        urls: "(Paste your STUN server URL here)",
-        username: "(Paste your TURN username here)",
-        credential: "(Paste your TURN credential here)",
-      },
-      {
-        urls: "(Paste your STUN server URL here)?transport=tcp",
-        username: "(Paste your TURN username here)",
-        credential: "(Paste your TURN credential here)",
-      },
-      {
-        urls: "(Paste your STUN server URL here)",
-        username: "(Paste your TURN username here)",
-        credential: "(Paste your TURN credential here)",
-      },
-      {
-        urls: "(Paste your STUN server URL here)?transport=tcp",
-        username: "(Paste your TURN username here)",
-        credential: "(Paste your TURN credential here)",
-      },
-    ],
+    iceServers: [ { urls: "stun:stun.relay.metered.ca:80", }, { urls: "turn:global.relay.metered.ca:80", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, { urls: "turn:global.relay.metered.ca:443", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, ],
   });
 
   pc.onicecandidate = (e) => {
