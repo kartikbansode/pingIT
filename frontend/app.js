@@ -11,7 +11,7 @@ let recvFiles = [];
 
 // Detect page
 const isSendPage = document.getElementById("fileInput") !== null;
-const isRecvPage = document.getElementById("roomInput") !== null;
+const isRecvPage = document.querySelector(".otp") !== null;
 
 // Common
 const status = document.getElementById("status");
@@ -29,7 +29,7 @@ const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
-// Receive UI
+// Receive UI (OTP)
 const otpInputs = document.querySelectorAll(".otp");
 const joinBtn = document.getElementById("joinBtn");
 const recvList = document.getElementById("recvList");
@@ -54,10 +54,7 @@ ws.onclose = () => log("WebSocket closed");
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from(
-    { length: len },
-    () => c[Math.floor(Math.random() * c.length)]
-  ).join("");
+  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
 // ---------- SEND ----------
@@ -73,6 +70,17 @@ if (isSendPage) {
   };
   dropZone.onclick = () => openPicker();
 
+  dropZone.ondragover = (e) => {
+    e.preventDefault();
+    dropZone.classList.add("drag");
+  };
+  dropZone.ondragleave = () => dropZone.classList.remove("drag");
+  dropZone.ondrop = (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("drag");
+    handleFiles(e.dataTransfer.files);
+  };
+
   fileInput.onchange = () => handleFiles(fileInput.files);
 
   function handleFiles(list) {
@@ -83,21 +91,16 @@ if (isSendPage) {
 
     let total = 0;
     filesToSend.forEach((f) => (total += f.size));
-    sendSummary.textContent = `${filesToSend.length} files • ${(
-      total /
-      1024 /
-      1024
-    ).toFixed(1)} MB`;
+    sendSummary.textContent = `${filesToSend.length} files • ${(total / 1024 / 1024).toFixed(1)} MB`;
 
     filesToSend.forEach((f) => {
       const tr = document.createElement("tr");
       tr.id = `send-${f.name}`;
       tr.innerHTML = `
-      <td><i class="fa-solid fa-file"></i> ${f.name}</td>
-      <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
-      <td><div class="progress"><span></span></div></td>
+        <td><i class="fa-solid fa-file"></i> ${f.name}</td>
+        <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
+        <td><div class="progress"><span></span></div></td>
       `;
-
       sendList.appendChild(tr);
     });
   }
@@ -110,10 +113,7 @@ if (isSendPage) {
     roomIdSpan.textContent = roomId;
     roomBox.classList.remove("hidden");
 
-    const url = `${location.origin}${location.pathname.replace(
-      "send.html",
-      "receive.html"
-    )}?room=${roomId}`;
+    const url = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomId}`;
     document.getElementById("qr").innerHTML = "";
     new QRCode(document.getElementById("qr"), url);
 
@@ -123,24 +123,37 @@ if (isSendPage) {
   };
 
   copyBtn.onclick = () => navigator.clipboard.writeText(roomIdSpan.textContent);
+
   copyLinkBtn.onclick = () => {
-    const link = `${location.origin}${location.pathname.replace(
-      "send.html",
-      "receive.html"
-    )}?room=${roomIdSpan.textContent}`;
+    const link = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomIdSpan.textContent}`;
     navigator.clipboard.writeText(link);
   };
 }
 
-// ---------- RECEIVE ----------
+// ---------- RECEIVE (OTP) ----------
 if (isRecvPage) {
+  otpInputs.forEach((input, idx) => {
+    input.addEventListener("input", () => {
+      input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (input.value && idx < otpInputs.length - 1) {
+        otpInputs[idx + 1].focus();
+      }
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !input.value && idx > 0) {
+        otpInputs[idx - 1].focus();
+      }
+    });
+  });
+
   joinBtn.onclick = () => {
     let code = "";
     otpInputs.forEach((i) => (code += i.value.toUpperCase()));
     roomId = code;
 
-    if (roomId.length !== 6) {
-      alert("Enter complete 6-digit code");
+    if (roomId.length !== otpInputs.length) {
+      alert("Enter complete room code");
       return;
     }
 
@@ -151,7 +164,7 @@ if (isRecvPage) {
   const params = new URLSearchParams(location.search);
   if (params.get("room")) {
     const code = params.get("room").toUpperCase();
-    if (code.length === 6) {
+    if (code.length === otpInputs.length) {
       otpInputs.forEach((inp, i) => (inp.value = code[i] || ""));
       setTimeout(() => joinBtn.click(), 600);
     }
@@ -167,20 +180,6 @@ if (isRecvPage) {
     a.click();
   };
 }
-otpInputs.forEach((input, idx) => {
-  input.addEventListener("input", () => {
-    input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (input.value && idx < otpInputs.length - 1) {
-      otpInputs[idx + 1].focus();
-    }
-  });
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Backspace" && !input.value && idx > 0) {
-      otpInputs[idx - 1].focus();
-    }
-  });
-});
 
 // ---------- WebSocket signaling ----------
 ws.onmessage = async (msg) => {
@@ -233,7 +232,7 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-    ],
+  ]
   });
 
   pc.onicecandidate = (e) => {
@@ -262,9 +261,7 @@ async function makeOffer() {
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    channel.send(
-      JSON.stringify({ meta: true, name: file.name, size: file.size })
-    );
+    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
@@ -334,11 +331,10 @@ function setupReceiver() {
       a.innerHTML = `<i class="fa-solid fa-download"></i> Download`;
 
       tr.innerHTML = `
-      <td><i class="fa-solid fa-file"></i> ${currentFile.name}</td>
-      <td>${(currentFile.size / 1024 / 1024).toFixed(1)} MB</td>
-      <td></td>
-        `;
-
+        <td><i class="fa-solid fa-file"></i> ${currentFile.name}</td>
+        <td>${(currentFile.size / 1024 / 1024).toFixed(1)} MB</td>
+        <td></td>
+      `;
       tr.children[2].appendChild(a);
       recvList.appendChild(tr);
 
