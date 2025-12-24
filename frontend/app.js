@@ -93,10 +93,11 @@ if (isSendPage) {
       const tr = document.createElement("tr");
       tr.id = `send-${f.name}`;
       tr.innerHTML = `
-        <td>${f.name}</td>
-        <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
-        <td><div class="progress"><span></span></div></td>
+      <td><i class="fa-solid fa-file"></i> ${f.name}</td>
+      <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
+      <td><div class="progress"><span></span></div></td>
       `;
+
       sendList.appendChild(tr);
     });
   }
@@ -276,6 +277,7 @@ function setupReceiver() {
   channel.onmessage = (e) => {
     if (typeof e.data === "string") {
       const msg = JSON.parse(e.data);
+
       if (msg.meta) {
         currentFile = msg;
         buffers = [];
@@ -284,6 +286,12 @@ function setupReceiver() {
         recvTableWrap.classList.remove("hidden");
         recvSummary.classList.remove("hidden");
       }
+
+      if (msg.done) {
+        log("All files received");
+        recvSummary.textContent = `${recvFiles.length} files received`;
+      }
+
       return;
     }
 
@@ -299,13 +307,14 @@ function setupReceiver() {
       const a = document.createElement("a");
       a.href = url;
       a.download = currentFile.name;
-      a.textContent = "Download";
+      a.innerHTML = `<i class="fa-solid fa-download"></i> Download`;
 
       tr.innerHTML = `
-        <td>${currentFile.name}</td>
-        <td>${(currentFile.size / 1024 / 1024).toFixed(1)} MB</td>
-        <td></td>
-      `;
+      <td><i class="fa-solid fa-file"></i> ${currentFile.name}</td>
+      <td>${(currentFile.size / 1024 / 1024).toFixed(1)} MB</td>
+      <td></td>
+        `;
+
       tr.children[2].appendChild(a);
       recvList.appendChild(tr);
 

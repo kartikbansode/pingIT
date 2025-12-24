@@ -1,60 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>pingIT - Send</title>
-  <link rel="stylesheet" href="style.css"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pingIT - Send</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
 </head>
+
 <body>
-<header>
-  <div class="logo">pingIT</div>
-  <div class="subtitle">Send Files</div>
-</header>
+    <header>
+        <div class="logo">pingIT</div>
+        <div class="subtitle">Send Files</div>
+    </header>
 
-<main class="container">
-<section class="panel">
+    <main class="container">
+        <section class="panel">
 
-  <button class="backBtn" onclick="location.href='index.html'">← Back</button>
+            <button class="backBtn" onclick="history.back()">
+                <i class="fa-solid fa-angle-left"></i>
+                <span>Back</span>
+            </button>
 
-  <div id="dropZone" class="drop-zone">
-    <div>Drag & drop files here</div>
-    <button id="browseBtn" type="button">Browse Files</button>
-    <input type="file" id="fileInput" multiple hidden />
-  </div>
 
-  <div class="summary hidden" id="sendSummary"></div>
 
-  <div class="table-wrap hidden" id="sendTableWrap">
-    <table class="file-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Size</th>
-          <th>Progress</th>
-        </tr>
-      </thead>
-      <tbody id="sendList"></tbody>
-    </table>
-  </div>
 
-  <button id="createBtn" disabled class="primary big-action">Create Room</button>
+            <div id="dropZone" class="drop-zone">
+                <div>Drag & drop files here</div>
+                <button id="browseBtn" type="button">
+                    <i class="fa-solid fa-plus"></i> Browse Files
+                </button>
 
-  <div id="roomBox" class="room-box hidden">
-    <div class="room-code" id="roomId"></div>
-    <div class="room-actions">
-      <button id="copyBtn">Copy Code</button>
-      <button id="copyLinkBtn">Copy Link</button>
-    </div>
-    <div id="qr" class="qr-box"></div>
-  </div>
+                <input type="file" id="fileInput" multiple hidden />
+            </div>
 
-</section>
-</main>
+            <div class="summary hidden" id="sendSummary"></div>
 
-<footer><div id="status">Connecting...</div></footer>
+            <div class="table-wrap hidden" id="sendTableWrap">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sendList"></tbody>
+                </table>
+            </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="app.js"></script>
+            <button id="createBtn" disabled class="primary big-action">
+                <i class="fa-solid fa-share"></i> Create Room
+            </button>
+
+
+            <div id="roomBox" class="room-box hidden">
+                <div class="room-code" id="roomId"></div>
+                <div class="room-actions">
+                    <button id="copyBtn">
+                        <i class="fa-solid fa-link"></i> Copy Code
+                    </button>
+                    <button id="copyLinkBtn">
+                        <i class="fa-solid fa-link"></i> Copy Link
+                    </button>
+
+                </div>
+                <div id="qr" class="qr-box"></div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer>
+        <div id="status">Connecting...</div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="app.js"></script>
 </body>
+
 </html>

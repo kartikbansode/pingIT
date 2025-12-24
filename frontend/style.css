@@ -1,4 +1,6 @@
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -7,15 +9,25 @@ body {
   color: #e5e7eb;
 }
 
+/* Header */
 header {
   background: #020617;
   padding: 16px;
   border-bottom: 1px solid #1e293b;
   text-align: center;
 }
-.logo { font-size: 24px; font-weight: 700; }
-.subtitle { color: #94a3b8; font-size: 14px; }
 
+.logo {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Home */
 .home {
   min-height: 100vh;
   display: flex;
@@ -35,6 +47,7 @@ header {
   cursor: pointer;
 }
 
+/* Layout */
 .container {
   max-width: 900px;
   margin: auto;
@@ -50,16 +63,44 @@ header {
 }
 
 .backBtn {
-  background: transparent;
-  border: none;
-  color: #60a5fa;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  color: #e5e7eb;
   font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 9px;
   cursor: pointer;
-  margin-bottom: 10px;
-  text-align: left;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
 }
 
-button, input {
+.backBtn:hover {
+  background: #1e293b;
+  border-color: #334155;
+  transform: translateX(-2px);
+}
+
+.backBtn:active {
+  transform: translateX(0);
+}
+
+.backIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.backText {
+  font-weight: 500;
+}
+
+
+/* Inputs & Buttons */
+button,
+input {
   width: 100%;
   padding: 12px;
   border-radius: 10px;
@@ -74,42 +115,87 @@ input {
   margin-bottom: 8px;
 }
 
-button { margin-top: 8px; cursor: pointer; }
-.primary { background: #2563eb; color: white; }
-.secondary { background: #334155; color: white; }
-button:disabled { background: #1e293b; }
+button {
+  margin-top: 8px;
+  cursor: pointer;
+}
 
-.big-action { font-size: 18px; }
+.primary {
+  background: #2563eb;
+  color: white;
+}
 
+.secondary {
+  background: #334155;
+  color: white;
+}
+
+button:disabled {
+  background: #1e293b;
+  cursor: not-allowed;
+}
+
+.big-action {
+  font-size: 18px;
+  padding: 14px;
+}
+
+/* Drop zone */
 .drop-zone {
   border: 2px dashed #334155;
   border-radius: 12px;
   padding: 18px;
   text-align: center;
+  color: #cbd5f5;
   margin-bottom: 8px;
+  transition: 0.2s ease;
 }
 
-.summary { font-size: 13px; color: #94a3b8; margin: 6px 0; }
+.drop-zone.drag {
+  background: #0f172a;
+  border-color: #22c55e;
+}
 
-.table-wrap { max-height: 240px; overflow-y: auto; }
+/* Summary */
+.summary {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 6px 0;
+}
+
+/* Table */
+.table-wrap {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
 
 .file-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
-.file-table th, .file-table td {
+
+.file-table th,
+.file-table td {
   border-bottom: 1px solid #1e293b;
   padding: 6px;
   text-align: left;
+  word-break: break-word;
 }
 
+.file-table th {
+  color: #94a3b8;
+}
+
+/* Progress bar */
 .progress {
   height: 6px;
   background: #1e293b;
   border-radius: 4px;
   overflow: hidden;
 }
+
 .progress span {
   display: block;
   height: 100%;
@@ -117,6 +203,7 @@ button:disabled { background: #1e293b; }
   width: 0%;
 }
 
+/* Room box */
 .room-box {
   margin-top: 12px;
   background: #0f172a;
@@ -124,27 +211,106 @@ button:disabled { background: #1e293b; }
   border-radius: 12px;
   text-align: center;
 }
+
 .room-code {
   font-size: 28px;
   letter-spacing: 3px;
   font-weight: bold;
+  margin-bottom: 10px;
 }
 
 .room-actions {
   display: flex;
   gap: 10px;
-  margin: 10px 0;
+  margin-bottom: 10px;
 }
-.room-actions button { flex: 1; }
 
-.qr-box { display: flex; justify-content: center; }
-.qr-box img { width: 140px; height: 140px; }
+.room-actions button {
+  flex: 1;
+}
 
-.hidden { display: none !important; }
+/* QR */
+.qr-box {
+  display: flex;
+  justify-content: center;
+}
 
+.qr-box img {
+  width: 140px;
+  height: 140px;
+}
+
+/* Footer */
 footer {
   text-align: center;
   padding: 12px;
   color: #93c5fd;
   font-size: 14px;
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .home-btn {
+    font-size: 22px;
+    padding: 18px;
+  }
+
+  .room-code {
+    font-size: 24px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+}
+
+
+/* Font Awesome spacing */
+i {
+  margin-right: 8px;
+}
+
+/* Buttons with icons */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Home buttons */
+.home-btn i {
+  font-size: 22px;
+}
+
+/* Back icon tighter */
+.backBtn i {
+  margin-right: 4px;
+  font-size: 16px;
+}
+
+/* File icon in table */
+.file-table i {
+  color: #60a5fa;
+}
+
+/* Download icon */
+a i {
+  margin-right: 6px;
+}
+
+/* Professional shadows */
+.panel,
+.room-box {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Subtle hover for actions */
+button:hover:not(:disabled) {
+  filter: brightness(1.05);
 }
