@@ -14,19 +14,12 @@ header {
   text-align: center;
 }
 .logo { font-size: 22px; font-weight: 700; }
-.subtitle { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+.subtitle { color: #94a3b8; font-size: 14px; margin-top: 5px; }
 
 .container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  padding: 16px;
   max-width: 1100px;
   margin: auto;
-}
-
-@media (max-width: 800px) {
-  .container { grid-template-columns: 1fr; }
+  padding: 16px;
 }
 
 .panel {
@@ -34,9 +27,22 @@ header {
   border: 1px solid #1e293b;
   border-radius: 12px;
   padding: 16px;
+  margin-top: 16px;
 }
 
-h2 { margin-top: 0; }
+.home {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  flex-direction: column;
+}
+
+.big {
+  font-size: 22px;
+  padding: 18px;
+}
 
 button, input {
   width: 100%;

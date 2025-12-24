@@ -10,6 +10,12 @@ let isSender = false;
 let recvFiles = [];
 
 // UI
+const home = document.getElementById("home");
+const sendPanel = document.getElementById("sendPanel");
+const recvPanel = document.getElementById("recvPanel");
+const goSend = document.getElementById("goSend");
+const goReceive = document.getElementById("goReceive");
+
 const fileInput = document.getElementById("fileInput");
 const browseBtn = document.getElementById("browseBtn");
 const dropZone = document.getElementById("dropZone");
@@ -25,6 +31,25 @@ const copyBtn = document.getElementById("copyBtn");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
 const status = document.getElementById("status");
 
+function showHome() {
+  home.classList.remove("hidden");
+  sendPanel.classList.add("hidden");
+  recvPanel.classList.add("hidden");
+}
+function showSend() {
+  home.classList.add("hidden");
+  sendPanel.classList.remove("hidden");
+  recvPanel.classList.add("hidden");
+}
+function showReceive() {
+  home.classList.add("hidden");
+  sendPanel.classList.add("hidden");
+  recvPanel.classList.remove("hidden");
+}
+
+goSend.onclick = () => showSend();
+goReceive.onclick = () => showReceive();
+
 function log(m) {
   console.log(m);
   status.textContent = m;
@@ -32,10 +57,7 @@ function log(m) {
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from(
-    { length: len },
-    () => c[Math.floor(Math.random() * c.length)]
-  ).join("");
+  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
 // ---- File Picker FIX ----
@@ -48,7 +70,6 @@ browseBtn.onclick = (e) => {
   e.stopPropagation();
   openPicker();
 };
-
 dropZone.onclick = () => openPicker();
 
 dropZone.ondragover = (e) => {
@@ -70,11 +91,7 @@ function handleFiles(list) {
 
   let total = 0;
   filesToSend.forEach((f) => (total += f.size));
-  sendSummary.textContent = `${filesToSend.length} files • ${(
-    total /
-    1024 /
-    1024
-  ).toFixed(1)} MB`;
+  sendSummary.textContent = `${filesToSend.length} files • ${(total / 1024 / 1024).toFixed(1)} MB`;
 
   filesToSend.forEach((f) => {
     const tr = document.createElement("tr");
@@ -145,7 +162,7 @@ async function createPeer() {
         username: "3925f5a71308b78d75a1f5fd",
         credential: "kWUIj7VlrSk9/9+D",
       },
-    ],
+  ]
   });
 
   pc.onicecandidate = (e) => {
@@ -175,6 +192,7 @@ async function makeOffer() {
 createBtn.onclick = async () => {
   if (filesToSend.length === 0) return alert("Select files first");
 
+  showSend();
   isSender = true;
   roomId = genRoomId();
   roomIdSpan.textContent = roomId;
@@ -190,6 +208,7 @@ createBtn.onclick = async () => {
 };
 
 joinBtn.onclick = () => {
+  showReceive();
   roomId = document.getElementById("roomInput").value.trim().toUpperCase();
   if (!roomId) return alert("Enter room code");
   ws.send(JSON.stringify({ type: "join", roomId }));
@@ -204,16 +223,17 @@ copyBtn.onclick = () => {
 // ---------- Auto join from QR ----------
 const params = new URLSearchParams(location.search);
 if (params.get("room")) {
+  showReceive();
   document.getElementById("roomInput").value = params.get("room").toUpperCase();
-  setTimeout(() => joinBtn.click(), 800);
+  setTimeout(() => joinBtn.click(), 600);
+} else {
+  showHome();
 }
 
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
-    channel.send(
-      JSON.stringify({ meta: true, name: file.name, size: file.size })
-    );
+    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
@@ -230,9 +250,7 @@ function sendOneFile(file) {
       channel.send(e.target.result);
       offset += e.target.result.byteLength;
       const pct = (offset / file.size) * 100;
-      document.querySelector(
-        `#send-${CSS.escape(file.name)} span`
-      ).style.width = pct + "%";
+      document.querySelector(`#send-${CSS.escape(file.name)} span`).style.width = pct + "%";
       if (offset < file.size) readSlice(offset);
       else resolve();
     };

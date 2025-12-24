@@ -13,8 +13,15 @@
 </header>
 
 <main class="container">
+
+  <!-- HOME -->
+  <section id="home" class="home">
+    <button id="goSend" class="primary big">SEND</button>
+    <button id="goReceive" class="secondary big">RECEIVE</button>
+  </section>
+
   <!-- SEND -->
-  <section class="panel">
+  <section id="sendPanel" class="panel hidden">
     <h2>Send Files</h2>
 
     <div id="dropZone" class="drop-zone">
@@ -28,11 +35,11 @@
     <div class="table-wrap">
       <table class="file-table">
         <thead>
-        <tr>
-          <th>Name</th>
-          <th>Size</th>
-          <th>Progress</th>
-        </tr>
+          <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Progress</th>
+          </tr>
         </thead>
         <tbody id="sendList"></tbody>
       </table>
@@ -50,7 +57,7 @@
   </section>
 
   <!-- RECEIVE -->
-  <section class="panel">
+  <section id="recvPanel" class="panel hidden">
     <h2>Receive Files</h2>
 
     <input id="roomInput" placeholder="Enter Code"/>
@@ -61,11 +68,11 @@
     <div class="table-wrap">
       <table class="file-table">
         <thead>
-        <tr>
-          <th>Name</th>
-          <th>Size</th>
-          <th>Action</th>
-        </tr>
+          <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Action</th>
+          </tr>
         </thead>
         <tbody id="recvList"></tbody>
       </table>
@@ -73,6 +80,7 @@
 
     <button id="downloadAllBtn" class="hidden secondary">⬇ Download All</button>
   </section>
+
 </main>
 
 <footer>
