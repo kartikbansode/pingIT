@@ -38,6 +38,17 @@ Once connected, data flows directly from sender to receiver.
 
 ---
 
+### ⚠️Usage
+**In order to use pingIT..
+Paste your Credentials in respected places given below**
+
+| File                                   | Source                                                        | Line no. to paste   |
+| ---------------------------------------| ------------------------------------------------------------- | ------------------- |
+| `frontend/app.js`                      | Render url from (https://render.com/)                         | 3                   |
+| `frontend/app.js`                      | Turn urls and credentials from (https://www.metered.ca/)      | 295 to 315          |
+
+---
+
 ## Tech Stack
 
 - HTML, CSS, JavaScript
