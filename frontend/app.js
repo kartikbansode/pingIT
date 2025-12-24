@@ -9,58 +9,35 @@ let roomId = "";
 let isSender = false;
 let recvFiles = [];
 
-// Navigation UI
-const home = document.getElementById("home");
-const sendPanel = document.getElementById("sendPanel");
-const recvPanel = document.getElementById("recvPanel");
-const goSend = document.getElementById("goSend");
-const goReceive = document.getElementById("goReceive");
-const backFromSend = document.getElementById("backFromSend");
-const backFromRecv = document.getElementById("backFromRecv");
+// Detect page
+const isSendPage = !!document.getElementById("fileInput");
+const isRecvPage = !!document.getElementById("roomInput");
 
-// Other UI
+// Common UI
+const status = document.getElementById("status");
+
+// SEND UI
 const fileInput = document.getElementById("fileInput");
 const browseBtn = document.getElementById("browseBtn");
 const dropZone = document.getElementById("dropZone");
 const sendList = document.getElementById("sendList");
-const recvList = document.getElementById("recvList");
 const sendSummary = document.getElementById("sendSummary");
-const recvSummary = document.getElementById("recvSummary");
 const createBtn = document.getElementById("createBtn");
-const joinBtn = document.getElementById("joinBtn");
 const roomBox = document.getElementById("roomBox");
 const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+// RECEIVE UI
+const roomInput = document.getElementById("roomInput");
+const joinBtn = document.getElementById("joinBtn");
+const recvList = document.getElementById("recvList");
+const recvSummary = document.getElementById("recvSummary");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
-const status = document.getElementById("status");
-
-// Navigation helpers
-function showHome() {
-  home.classList.remove("hidden");
-  sendPanel.classList.add("hidden");
-  recvPanel.classList.add("hidden");
-}
-function showSend() {
-  home.classList.add("hidden");
-  sendPanel.classList.remove("hidden");
-  recvPanel.classList.add("hidden");
-}
-function showReceive() {
-  home.classList.add("hidden");
-  sendPanel.classList.add("hidden");
-  recvPanel.classList.remove("hidden");
-}
-
-// Bind after DOM ready
-goSend.onclick = () => showSend();
-goReceive.onclick = () => showReceive();
-backFromSend.onclick = () => showHome();
-backFromRecv.onclick = () => showHome();
 
 function log(m) {
   console.log(m);
-  status.textContent = m;
+  if (status) status.textContent = m;
 }
 
 function genRoomId(len = 6) {
@@ -68,57 +45,110 @@ function genRoomId(len = 6) {
   return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
-// ---- File Picker ----
-function openPicker() {
-  fileInput.value = "";
-  fileInput.click();
+// ---------- SEND PAGE ----------
+if (isSendPage) {
+  function openPicker() {
+    fileInput.value = "";
+    fileInput.click();
+  }
+
+  browseBtn.onclick = (e) => {
+    e.stopPropagation();
+    openPicker();
+  };
+  dropZone.onclick = () => openPicker();
+
+  dropZone.ondragover = (e) => {
+    e.preventDefault();
+    dropZone.classList.add("drag");
+  };
+  dropZone.ondragleave = () => dropZone.classList.remove("drag");
+  dropZone.ondrop = (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("drag");
+    handleFiles(e.dataTransfer.files);
+  };
+
+  fileInput.onchange = () => handleFiles(fileInput.files);
+
+  function handleFiles(list) {
+    filesToSend = Array.from(list);
+    sendList.innerHTML = "";
+
+    let total = 0;
+    filesToSend.forEach((f) => (total += f.size));
+    sendSummary.textContent = `${filesToSend.length} files • ${(total / 1024 / 1024).toFixed(1)} MB`;
+
+    filesToSend.forEach((f) => {
+      const tr = document.createElement("tr");
+      tr.id = `send-${f.name}`;
+      tr.innerHTML = `
+        <td>${f.name}</td>
+        <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
+        <td><div class="progress"><span></span></div></td>
+      `;
+      sendList.appendChild(tr);
+    });
+  }
+
+  createBtn.onclick = async () => {
+    if (filesToSend.length === 0) return alert("Select files first");
+
+    isSender = true;
+    roomId = genRoomId();
+    roomIdSpan.textContent = roomId;
+    roomBox.classList.remove("hidden");
+
+    const url = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomId}`;
+    document.getElementById("qr").innerHTML = "";
+    new QRCode(document.getElementById("qr"), url);
+
+    await createPeer();
+    ws.send(JSON.stringify({ type: "join", roomId }));
+    log("READY TO SEND");
+  };
+
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(roomIdSpan.textContent);
+    alert("Code copied!");
+  };
+
+  copyLinkBtn.onclick = () => {
+    const link = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomIdSpan.textContent}`;
+    navigator.clipboard.writeText(link);
+    alert("Link copied!");
+  };
 }
 
-browseBtn.onclick = (e) => {
-  e.stopPropagation();
-  openPicker();
-};
-dropZone.onclick = () => openPicker();
+// ---------- RECEIVE PAGE ----------
+if (isRecvPage) {
+  joinBtn.onclick = () => {
+    roomId = roomInput.value.trim().toUpperCase();
+    if (!roomId) return alert("Enter room code");
+    ws.send(JSON.stringify({ type: "join", roomId }));
+    log("CONNECTING...");
+  };
 
-dropZone.ondragover = (e) => {
-  e.preventDefault();
-  dropZone.classList.add("drag");
-};
-dropZone.ondragleave = () => dropZone.classList.remove("drag");
-dropZone.ondrop = (e) => {
-  e.preventDefault();
-  dropZone.classList.remove("drag");
-  handleFiles(e.dataTransfer.files);
-};
+  const params = new URLSearchParams(location.search);
+  if (params.get("room")) {
+    roomInput.value = params.get("room").toUpperCase();
+    setTimeout(() => joinBtn.click(), 600);
+  }
 
-fileInput.onchange = () => handleFiles(fileInput.files);
+  downloadAllBtn.onclick = async () => {
+    const zip = new JSZip();
+    recvFiles.forEach((f) => zip.file(f.name, f.blob));
+    const blob = await zip.generateAsync({ type: "blob" });
 
-function handleFiles(list) {
-  filesToSend = Array.from(list);
-  sendList.innerHTML = "";
-
-  let total = 0;
-  filesToSend.forEach((f) => (total += f.size));
-  sendSummary.textContent = `${filesToSend.length} files • ${(total / 1024 / 1024).toFixed(1)} MB`;
-
-  filesToSend.forEach((f) => {
-    const tr = document.createElement("tr");
-    tr.id = `send-${f.name}`;
-    tr.innerHTML = `
-      <td>${f.name}</td>
-      <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
-      <td><div class="progress"><span></span></div></td>
-    `;
-    sendList.appendChild(tr);
-  });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pingIT.zip";
+    a.click();
+  };
 }
 
 // ---------- WebSocket ----------
-ws.onopen = () => {
-  log("READY");
-  createBtn.disabled = false;
-  joinBtn.disabled = false;
-};
+ws.onopen = () => log("READY");
 
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
@@ -196,54 +226,6 @@ async function makeOffer() {
   ws.send(JSON.stringify({ type: "offer", offer, roomId }));
 }
 
-// ---------- Buttons ----------
-createBtn.onclick = async () => {
-  if (filesToSend.length === 0) return alert("Select files first");
-
-  showSend();
-  isSender = true;
-  roomId = genRoomId();
-  roomIdSpan.textContent = roomId;
-  roomBox.classList.remove("hidden");
-
-  const url = `${location.origin}${location.pathname}?room=${roomId}`;
-  document.getElementById("qr").innerHTML = "";
-  new QRCode(document.getElementById("qr"), url);
-
-  await createPeer();
-  ws.send(JSON.stringify({ type: "join", roomId }));
-  log("READY TO SEND");
-};
-
-joinBtn.onclick = () => {
-  showReceive();
-  roomId = document.getElementById("roomInput").value.trim().toUpperCase();
-  if (!roomId) return alert("Enter room code");
-  ws.send(JSON.stringify({ type: "join", roomId }));
-  log("CONNECTING...");
-};
-
-copyBtn.onclick = () => {
-  navigator.clipboard.writeText(roomIdSpan.textContent);
-  alert("Code copied!");
-};
-
-copyLinkBtn.onclick = () => {
-  const link = `${location.origin}${location.pathname}?room=${roomIdSpan.textContent}`;
-  navigator.clipboard.writeText(link);
-  alert("Link copied!");
-};
-
-// ---------- Auto join from QR ----------
-const params = new URLSearchParams(location.search);
-if (params.get("room")) {
-  showReceive();
-  document.getElementById("roomInput").value = params.get("room").toUpperCase();
-  setTimeout(() => joinBtn.click(), 600);
-} else {
-  showHome();
-}
-
 // ---------- Send ----------
 async function sendFiles() {
   for (const file of filesToSend) {
@@ -264,7 +246,8 @@ function sendOneFile(file) {
       channel.send(e.target.result);
       offset += e.target.result.byteLength;
       const pct = (offset / file.size) * 100;
-      document.querySelector(`#send-${CSS.escape(file.name)} span`).style.width = pct + "%";
+      const bar = document.querySelector(`#send-${CSS.escape(file.name)} span`);
+      if (bar) bar.style.width = pct + "%";
       if (offset < file.size) readSlice(offset);
       else resolve();
     };
@@ -287,7 +270,7 @@ function setupReceiver() {
         currentFile = msg;
         buffers = [];
         received = 0;
-        log(`PLEASE WAIT... Receiving ${msg.name}`);
+        log(`Receiving ${msg.name}...`);
       }
       return;
     }
@@ -320,15 +303,3 @@ function setupReceiver() {
     }
   };
 }
-
-// ---------- Download All ----------
-downloadAllBtn.onclick = async () => {
-  const zip = new JSZip();
-  recvFiles.forEach((f) => zip.file(f.name, f.blob));
-  const blob = await zip.generateAsync({ type: "blob" });
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "pingIT.zip";
-  a.click();
-};

@@ -12,88 +12,10 @@
   <div class="subtitle">Fast peer-to-peer file sharing</div>
 </header>
 
-<main class="container">
-
-  <!-- HOME -->
-  <section id="home" class="home">
-    <button id="goSend" class="home-btn primary">SEND</button>
-    <button id="goReceive" class="home-btn secondary">RECEIVE</button>
-  </section>
-
-  <!-- SEND -->
-  <section id="sendPanel" class="panel hidden">
-    <button class="backBtn" id="backFromSend">← Back</button>
-    <h2>Send Files</h2>
-
-    <div id="dropZone" class="drop-zone">
-      <div>Drag & drop files here</div>
-      <button id="browseBtn" type="button">Browse Files</button>
-      <input type="file" id="fileInput" multiple hidden />
-    </div>
-
-    <div class="summary" id="sendSummary"></div>
-
-    <div class="table-wrap">
-      <table class="file-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Size</th>
-            <th>Progress</th>
-          </tr>
-        </thead>
-        <tbody id="sendList"></tbody>
-      </table>
-    </div>
-
-    <button id="createBtn" disabled class="primary big-action">Create Room</button>
-
-    <div id="roomBox" class="room-box hidden">
-      <div class="room-code">
-        <span id="roomId"></span>
-      </div>
-      <div class="room-actions">
-        <button id="copyBtn">Copy Code</button>
-        <button id="copyLinkBtn">Copy Link</button>
-      </div>
-      <div id="qr" class="qr-box"></div>
-    </div>
-  </section>
-
-  <!-- RECEIVE -->
-  <section id="recvPanel" class="panel hidden">
-    <button class="backBtn" id="backFromRecv">← Back</button>
-    <h2>Receive Files</h2>
-
-    <input id="roomInput" placeholder="Enter Code"/>
-    <button id="joinBtn" disabled class="primary big-action">Join Room</button>
-
-    <div class="summary" id="recvSummary"></div>
-
-    <div class="table-wrap">
-      <table class="file-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Size</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="recvList"></tbody>
-      </table>
-    </div>
-
-    <button id="downloadAllBtn" class="hidden secondary">Download All</button>
-  </section>
-
+<main class="home">
+  <button class="home-btn primary" onclick="location.href='send.html'">SEND</button>
+  <button class="home-btn secondary" onclick="location.href='receive.html'">RECEIVE</button>
 </main>
 
-<footer>
-  <div id="status">Connecting...</div>
-</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="app.js"></script>
 </body>
 </html>
