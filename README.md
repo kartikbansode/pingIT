@@ -52,16 +52,12 @@ Once connected, data flows directly from sender to receiver.
 ---
 
 ## Screenshots
-
-<img width="1364" height="637" alt="image" src="https://github.com/user-attachments/assets/0591e9b6-a566-47b3-b843-4a70fe982826" />
-
----
-
-<img width="1363" height="633" alt="image" src="https://github.com/user-attachments/assets/8ff23fa8-ad96-49c6-b210-b2b4c94d0cc4" />
-
----
-
-<img width="1365" height="639" alt="image" src="https://github.com/user-attachments/assets/f4613157-747a-41a6-a8b8-57951f27ef56" />
+Home page
+><img width="1364" height="637" alt="image" src="https://github.com/user-attachments/assets/0591e9b6-a566-47b3-b843-4a70fe982826" />
+Sender page
+><img width="1363" height="633" alt="image" src="https://github.com/user-attachments/assets/8ff23fa8-ad96-49c6-b210-b2b4c94d0cc4" />
+Receiver page
+><img width="1365" height="639" alt="image" src="https://github.com/user-attachments/assets/f4613157-747a-41a6-a8b8-57951f27ef56" />
 
 ---
 
