@@ -10,8 +10,8 @@ let isSender = false;
 let recvFiles = [];
 
 // Detect page
-const isSendPage = !!document.getElementById("fileInput");
-const isRecvPage = !!document.getElementById("roomInput");
+const isSendPage = document.getElementById("fileInput") !== null;
+const isRecvPage = document.getElementById("roomInput") !== null;
 
 // Common
 const status = document.getElementById("status");
@@ -47,7 +47,14 @@ function genRoomId(len = 6) {
   return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
-// ---------- SEND PAGE ----------
+// ---------- Enable buttons when WS ready ----------
+ws.onopen = () => {
+  log("READY");
+  if (createBtn) createBtn.disabled = false;
+  if (joinBtn) joinBtn.disabled = false;
+};
+
+// ---------- SEND ----------
 if (isSendPage) {
   function openPicker() {
     fileInput.value = "";
@@ -109,7 +116,7 @@ if (isSendPage) {
 
     await createPeer();
     ws.send(JSON.stringify({ type: "join", roomId }));
-    log("READY TO SEND");
+    log("ROOM CREATED. WAITING...");
   };
 
   copyBtn.onclick = () => {
@@ -124,13 +131,13 @@ if (isSendPage) {
   };
 }
 
-// ---------- RECEIVE PAGE ----------
+// ---------- RECEIVE ----------
 if (isRecvPage) {
   joinBtn.onclick = () => {
     roomId = roomInput.value.trim().toUpperCase();
     if (!roomId) return alert("Enter room code");
     ws.send(JSON.stringify({ type: "join", roomId }));
-    log("CONNECTING...");
+    log("JOINING ROOM...");
   };
 
   const params = new URLSearchParams(location.search);
@@ -151,9 +158,7 @@ if (isRecvPage) {
   };
 }
 
-// ---------- WebSocket ----------
-ws.onopen = () => log("READY");
-
+// ---------- WebSocket signaling ----------
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
   if (data.roomId !== roomId) return;

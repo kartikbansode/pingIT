@@ -25,7 +25,6 @@ header {
   gap: 24px;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
 }
 
 .home-btn {
@@ -53,7 +52,7 @@ header {
   margin-top: 12px;
 }
 
-/* Back button */
+/* Back */
 .backBtn {
   background: transparent;
   border: none;
@@ -64,7 +63,6 @@ header {
   margin-bottom: 10px;
   text-align: left;
   width: auto;
-  display: inline-block;
 }
 .backBtn:hover { text-decoration: underline; }
 
@@ -98,7 +96,7 @@ button:disabled { background: #1e293b; }
   padding: 14px;
 }
 
-/* Drop zone */
+/* Drop */
 .drop-zone {
   border: 2px dashed #334155;
   border-radius: 12px;
@@ -152,7 +150,7 @@ button:disabled { background: #1e293b; }
   width: 0%;
 }
 
-/* Room box */
+/* Room */
 .room-box {
   margin-top: 12px;
   background: #0f172a;
