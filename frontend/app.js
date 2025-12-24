@@ -9,13 +9,16 @@ let roomId = "";
 let isSender = false;
 let recvFiles = [];
 
-// UI
+// UI navigation
 const home = document.getElementById("home");
 const sendPanel = document.getElementById("sendPanel");
 const recvPanel = document.getElementById("recvPanel");
 const goSend = document.getElementById("goSend");
 const goReceive = document.getElementById("goReceive");
+const backFromSend = document.getElementById("backFromSend");
+const backFromRecv = document.getElementById("backFromRecv");
 
+// Other UI
 const fileInput = document.getElementById("fileInput");
 const browseBtn = document.getElementById("browseBtn");
 const dropZone = document.getElementById("dropZone");
@@ -31,6 +34,7 @@ const copyBtn = document.getElementById("copyBtn");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
 const status = document.getElementById("status");
 
+// Navigation helpers
 function showHome() {
   home.classList.remove("hidden");
   sendPanel.classList.add("hidden");
@@ -49,6 +53,8 @@ function showReceive() {
 
 goSend.onclick = () => showSend();
 goReceive.onclick = () => showReceive();
+backFromSend.onclick = () => showHome();
+backFromRecv.onclick = () => showHome();
 
 function log(m) {
   console.log(m);
@@ -60,7 +66,7 @@ function genRoomId(len = 6) {
   return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
-// ---- File Picker FIX ----
+// ---- File Picker ----
 function openPicker() {
   fileInput.value = "";
   fileInput.click();
