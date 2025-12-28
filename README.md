@@ -7,9 +7,18 @@ This is a personal project created for learning and demonstration purposes.
 
 ---
 
->**Version:** 1.0
+>**Version:** 1.1
 >
->**Release Date:** December 24, 2025  
+>**Release Date:** December 28, 2025  
+
+---
+
+## Whats new in v1.1
+
+1. Improved Transfer Speed
+2. Added animations
+3. Improved overall website style
+4. Bug fix
 
 ---
 
