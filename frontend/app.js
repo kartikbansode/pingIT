@@ -1,6 +1,6 @@
 console.log("pingIT loaded");
 
-const WS_URL = "wss://pingit-xyf7.onrender.com"; // (Paste you render websocket URL here without https:// )
+const WS_URL = "wss://pingit-xyf7.onrender.com";
 const ws = new WebSocket(WS_URL);
 
 let pc, channel;
@@ -8,6 +8,12 @@ let filesToSend = [];
 let roomId = "";
 let isSender = false;
 let recvFiles = [];
+
+// ✅ Overall progress tracking
+let totalSendBytes = 0;
+let sentBytes = 0;
+let totalRecvBytes = 0;
+let recvBytes = 0;
 
 // Detect page
 const isSendPage = document.getElementById("fileInput") !== null;
@@ -28,21 +34,24 @@ const roomBox = document.getElementById("roomBox");
 const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
+const overallSendWrap = document.getElementById("overallSendWrap");
+const overallSendBar = document.getElementById("overallSendBar");
 
-// Receive UI (OTP)
+// Receive UI
 const otpInputs = document.querySelectorAll(".otp");
 const joinBtn = document.getElementById("joinBtn");
 const recvList = document.getElementById("recvList");
 const recvSummary = document.getElementById("recvSummary");
 const recvTableWrap = document.getElementById("recvTableWrap");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
+const overallRecvWrap = document.getElementById("overallRecvWrap");
+const overallRecvBar = document.getElementById("overallRecvBar");
 
 function log(m) {
   console.log(m);
   if (status) status.textContent = m;
 }
 
-// Enable buttons when WS connects
 ws.onopen = () => {
   log("Connected to server");
   if (createBtn) createBtn.disabled = false;
@@ -56,16 +65,12 @@ ws.onopen = () => {
   }
 };
 
-
 ws.onerror = () => log("WebSocket error");
 ws.onclose = () => log("WebSocket closed");
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from(
-    { length: len },
-    () => c[Math.floor(Math.random() * c.length)]
-  ).join("");
+  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
 }
 
 // ---------- SEND ----------
@@ -99,14 +104,13 @@ if (isSendPage) {
     sendList.innerHTML = "";
     sendTableWrap.classList.remove("hidden");
     sendSummary.classList.remove("hidden");
+    overallSendWrap.classList.remove("hidden");
 
-    let total = 0;
-    filesToSend.forEach((f) => (total += f.size));
-    sendSummary.textContent = `${filesToSend.length} files • ${(
-      total /
-      1024 /
-      1024
-    ).toFixed(1)} MB`;
+    totalSendBytes = 0;
+    sentBytes = 0;
+
+    filesToSend.forEach((f) => (totalSendBytes += f.size));
+    sendSummary.textContent = `${filesToSend.length} files • ${(totalSendBytes / 1024 / 1024).toFixed(1)} MB`;
 
     filesToSend.forEach((f) => {
       const tr = document.createElement("tr");
@@ -118,6 +122,8 @@ if (isSendPage) {
       `;
       sendList.appendChild(tr);
     });
+
+    overallSendBar.style.width = "0%";
   }
 
   createBtn.onclick = async () => {
@@ -128,10 +134,7 @@ if (isSendPage) {
     roomIdSpan.textContent = roomId;
     roomBox.classList.remove("hidden");
 
-    const url = `${location.origin}${location.pathname.replace(
-      "send.html",
-      "receive.html"
-    )}?room=${roomId}`;
+    const url = `${location.origin}${location.pathname.replace("send.html", "receive.html")}?room=${roomId}`;
     document.getElementById("qr").innerHTML = "";
     new QRCode(document.getElementById("qr"), url);
 
@@ -141,18 +144,13 @@ if (isSendPage) {
   };
 
   copyBtn.onclick = () => navigator.clipboard.writeText(roomIdSpan.textContent);
-
   copyLinkBtn.onclick = () => {
-    const link = `${location.origin}${location.pathname.replace(
-      "send.html",
-      "receive.html"
-    )}?room=${roomIdSpan.textContent}`;
+    const link = `${location.origin}${location.pathname.replace("send.html", "receive.html")}?room=${roomIdSpan.textContent}`;
     navigator.clipboard.writeText(link);
   };
 }
 
-// ---------- RECEIVE (OTP) ----------
-// ---------- RECEIVE (OTP) ----------
+// ---------- RECEIVE OTP ----------
 let pendingJoinCode = null;
 
 if (isRecvPage) {
@@ -166,63 +164,40 @@ if (isRecvPage) {
 
   function shakeOTP() {
     otpWrap.classList.remove("shake");
-    // force reflow so animation restarts every time
     void otpWrap.offsetWidth;
     otpWrap.classList.add("shake");
   }
 
-  // Input & navigation
   otpInputs.forEach((input, idx) => {
     input.addEventListener("input", () => {
       let val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-
-      // ✅ Keep only ONE character
       if (val.length > 1) val = val.slice(-1);
       input.value = val;
-
-      if (val && idx < otpInputs.length - 1) {
-        otpInputs[idx + 1].focus();
-      }
+      if (val && idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
     });
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Backspace") {
-        if (!input.value && idx > 0) {
-          otpInputs[idx - 1].focus();
-        } else {
-          input.value = "";
-        }
+        if (!input.value && idx > 0) otpInputs[idx - 1].focus();
+        else input.value = "";
       }
     });
   });
 
-  // ✅ Paste support (Ctrl+V)
   otpWrap.addEventListener("paste", (e) => {
     e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData)
-      .getData("text")
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "");
-
-    otpInputs.forEach((inp, i) => {
-      inp.value = text[i] || "";
-    });
-
-    if (text.length >= otpInputs.length) {
-      joinBtn.click();
-    }
+    const text = (e.clipboardData || window.clipboardData).getData("text").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    otpInputs.forEach((inp, i) => (inp.value = text[i] || ""));
+    if (text.length >= otpInputs.length) joinBtn.click();
   });
 
   function tryJoin() {
     const code = getOTPCode();
-
     if (code.length !== otpInputs.length) {
       shakeOTP();
       return;
     }
-
     roomId = code;
-
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "join", roomId }));
       log("Joining room...");
@@ -232,11 +207,8 @@ if (isRecvPage) {
     }
   }
 
-  joinBtn.onclick = () => {
-    tryJoin();
-  };
+  joinBtn.onclick = () => tryJoin();
 
-  // ✅ Auto-fill from QR
   const params = new URLSearchParams(location.search);
   if (params.get("room")) {
     const code = params.get("room").toUpperCase();
@@ -246,7 +218,6 @@ if (isRecvPage) {
     }
   }
 
-  // Download all
   downloadAllBtn.onclick = async () => {
     const zip = new JSZip();
     recvFiles.forEach((f) => zip.file(f.name, f.blob));
@@ -258,7 +229,7 @@ if (isRecvPage) {
   };
 }
 
-// ---------- WebSocket signaling ----------
+// ---------- Signaling ----------
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
   if (data.roomId !== roomId) return;
@@ -269,8 +240,7 @@ ws.onmessage = async (msg) => {
   }
 
   if (data.type === "offer" && !isSender) {
-    log("Offer received. Connecting to sender...");
-
+    log("Offer received. Connecting...");
     await createPeer();
     await pc.setRemoteDescription(data.offer);
     const answer = await pc.createAnswer();
@@ -288,20 +258,25 @@ ws.onmessage = async (msg) => {
 };
 
 // ---------- WebRTC ----------
-async function createPeer() { // Paste your STUN and TURN server URLs and credentials below
+async function createPeer() {
   pc = new RTCPeerConnection({
-    iceServers: [ { urls: "stun:stun.relay.metered.ca:80", }, { urls: "turn:global.relay.metered.ca:80", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, { urls: "turn:global.relay.metered.ca:443", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D", }, ],
+    iceServers: [
+      { urls: "stun:stun.relay.metered.ca:80" },
+      { urls: "turn:global.relay.metered.ca:80", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D" },
+      { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D" },
+      { urls: "turn:global.relay.metered.ca:443", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D" },
+      { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D" },
+    ],
+  });
 
   pc.onicecandidate = (e) => {
-    if (e.candidate) {
-      ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
-    }
+    if (e.candidate) ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
   };
 
   pc.ondatachannel = (e) => {
     channel = e.channel;
     channel.binaryType = "arraybuffer";
-    log("Connected to sender. Waiting for files...");
+    log("Connected. Waiting for files...");
     setupReceiver();
   };
 }
@@ -310,7 +285,7 @@ async function makeOffer() {
   channel = pc.createDataChannel("file");
   channel.binaryType = "arraybuffer";
   channel.onopen = () => {
-    log("Connected to receiver. Starting transfer...");
+    log("Connected. Starting transfer...");
     sendFiles();
   };
 
@@ -323,9 +298,7 @@ async function makeOffer() {
 async function sendFiles() {
   for (const file of filesToSend) {
     log(`Sending: ${file.name}`);
-    channel.send(
-      JSON.stringify({ meta: true, name: file.name, size: file.size })
-    );
+    channel.send(JSON.stringify({ meta: true, name: file.name, size: file.size }));
     await sendOneFile(file);
   }
   channel.send(JSON.stringify({ done: true }));
@@ -334,42 +307,41 @@ async function sendFiles() {
 
 function sendOneFile(file) {
   return new Promise((resolve) => {
-    const CHUNK = 32 * 1024; // smaller chunks = safer
+    const CHUNK = 32 * 1024;
     let offset = 0;
     const reader = new FileReader();
+    const HIGH = 8 * 1024 * 1024;
 
-    const HIGH_WATER_MARK = 8 * 1024 * 1024; // 8 MB buffer limit
-
-    channel.bufferedAmountLowThreshold = 2 * 1024 * 1024; // resume at 2 MB
+    channel.bufferedAmountLowThreshold = 2 * 1024 * 1024;
 
     function readSlice(o) {
       reader.readAsArrayBuffer(file.slice(o, o + CHUNK));
     }
 
     reader.onload = (e) => {
-      // ✅ If buffer is full, wait
-      if (channel.bufferedAmount > HIGH_WATER_MARK) {
+      const sendChunk = () => {
+        channel.send(e.target.result);
+        offset += e.target.result.byteLength;
+        sentBytes += e.target.result.byteLength;
+
+        const pct = (offset / file.size) * 100;
+        const bar = document.querySelector(`#send-${CSS.escape(file.name)} span`);
+        if (bar) bar.style.width = pct + "%";
+
+        const overallPct = (sentBytes / totalSendBytes) * 100;
+        overallSendBar.style.width = overallPct + "%";
+
+        if (offset < file.size) readSlice(offset);
+        else resolve();
+      };
+
+      if (channel.bufferedAmount > HIGH) {
         channel.onbufferedamountlow = () => {
           channel.onbufferedamountlow = null;
-          channel.send(e.target.result);
-          afterSend(e.target.result.byteLength);
+          sendChunk();
         };
-      } else {
-        channel.send(e.target.result);
-        afterSend(e.target.result.byteLength);
-      }
+      } else sendChunk();
     };
-
-    function afterSend(sentBytes) {
-      offset += sentBytes;
-
-      const pct = (offset / file.size) * 100;
-      const bar = document.querySelector(`#send-${CSS.escape(file.name)} span`);
-      if (bar) bar.style.width = pct + "%";
-
-      if (offset < file.size) readSlice(offset);
-      else resolve();
-    }
 
     readSlice(0);
   });
@@ -383,21 +355,20 @@ function setupReceiver() {
   let currentRow = null;
 
   channel.onmessage = (e) => {
-    // ----- Control messages -----
     if (typeof e.data === "string") {
       const msg = JSON.parse(e.data);
 
-      // 📄 New file incoming
       if (msg.meta) {
         currentFile = msg;
         buffers = [];
         received = 0;
+        totalRecvBytes += msg.size;
 
         log(`Receiving: ${msg.name}`);
         recvTableWrap.classList.remove("hidden");
         recvSummary.classList.remove("hidden");
+        overallRecvWrap.classList.remove("hidden");
 
-        // ✅ Create row immediately with progress bar
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><i class="fa-solid fa-file"></i> ${msg.name}</td>
@@ -406,39 +377,35 @@ function setupReceiver() {
         `;
         recvList.appendChild(tr);
         currentRow = tr;
-
         return;
       }
 
-      // ✅ All files done
       if (msg.done) {
         log("All files received");
         recvSummary.textContent = `${recvFiles.length} files received`;
         return;
       }
-
       return;
     }
 
-    // ----- Binary chunks -----
     buffers.push(e.data);
     received += e.data.byteLength;
+    recvBytes += e.data.byteLength;
 
-    // ✅ Update progress live
     if (currentFile && currentRow) {
       const pct = (received / currentFile.size) * 100;
       const bar = currentRow.querySelector(".progress span");
       if (bar) bar.style.width = pct + "%";
+
+      const overallPct = (recvBytes / totalRecvBytes) * 100;
+      overallRecvBar.style.width = overallPct + "%";
     }
 
-    // ✅ File completed
     if (currentFile && received >= currentFile.size) {
       const blob = new Blob(buffers);
       const url = URL.createObjectURL(blob);
-
       recvFiles.push({ name: currentFile.name, blob });
 
-      // Replace progress with download button
       const a = document.createElement("a");
       a.href = url;
       a.download = currentFile.name;
