@@ -1,6 +1,7 @@
+
 console.log("pingIT loaded");
 
-const WS_URL = "wss://pingit-xyf7.onrender.com";
+const WS_URL = "wss://pingit-xyf7.onrender.com"; // (Paste you render websocket URL here without https:// )
 const ws = new WebSocket(WS_URL);
 
 let pc, channel;
@@ -9,14 +10,11 @@ let roomId = "";
 let isSender = false;
 let recvFiles = [];
 
-let totalBytes = 0;
-let transferred = 0;
-let startTime = 0;
-
 // Detect page
 const isSendPage = document.getElementById("fileInput") !== null;
 const isRecvPage = document.querySelector(".otp") !== null;
 
+// Common
 const status = document.getElementById("status");
 
 // Send UI
@@ -32,7 +30,7 @@ const roomIdSpan = document.getElementById("roomId");
 const copyBtn = document.getElementById("copyBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
-// Receive UI
+// Receive UI (OTP)
 const otpInputs = document.querySelectorAll(".otp");
 const joinBtn = document.getElementById("joinBtn");
 const recvList = document.getElementById("recvList");
@@ -40,24 +38,35 @@ const recvSummary = document.getElementById("recvSummary");
 const recvTableWrap = document.getElementById("recvTableWrap");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
 
-const overallBox = document.getElementById("overallBox");
-const overallPct = document.getElementById("overallPct");
-const speedInfo = document.getElementById("speedInfo");
-
 function log(m) {
   console.log(m);
   if (status) status.textContent = m;
 }
 
+// Enable buttons when WS connects
 ws.onopen = () => {
-  log("Connected");
+  log("Connected to server");
   if (createBtn) createBtn.disabled = false;
   if (joinBtn) joinBtn.disabled = false;
+
+  if (pendingJoinCode) {
+    roomId = pendingJoinCode;
+    ws.send(JSON.stringify({ type: "join", roomId }));
+    log("Joining room...");
+    pendingJoinCode = null;
+  }
 };
+
+
+ws.onerror = () => log("WebSocket error");
+ws.onclose = () => log("WebSocket closed");
 
 function genRoomId(len = 6) {
   const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return Array.from({ length: len }, () => c[Math.floor(Math.random() * c.length)]).join("");
+  return Array.from(
+    { length: len },
+    () => c[Math.floor(Math.random() * c.length)]
+  ).join("");
 }
 
 // ---------- SEND ----------
@@ -67,14 +76,23 @@ if (isSendPage) {
     fileInput.click();
   }
 
-  browseBtn.onclick = (e) => { e.stopPropagation(); openPicker(); };
+  browseBtn.onclick = (e) => {
+    e.stopPropagation();
+    openPicker();
+  };
   dropZone.onclick = () => openPicker();
-  dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add("drag"); };
+
+  dropZone.ondragover = (e) => {
+    e.preventDefault();
+    dropZone.classList.add("drag");
+  };
   dropZone.ondragleave = () => dropZone.classList.remove("drag");
   dropZone.ondrop = (e) => {
-    e.preventDefault(); dropZone.classList.remove("drag");
+    e.preventDefault();
+    dropZone.classList.remove("drag");
     handleFiles(e.dataTransfer.files);
   };
+
   fileInput.onchange = () => handleFiles(fileInput.files);
 
   function handleFiles(list) {
@@ -82,69 +100,178 @@ if (isSendPage) {
     sendList.innerHTML = "";
     sendTableWrap.classList.remove("hidden");
     sendSummary.classList.remove("hidden");
-    overallBox.classList.remove("hidden");
 
-    totalBytes = 0;
-    transferred = 0;
-    startTime = Date.now();
+    let total = 0;
+    filesToSend.forEach((f) => (total += f.size));
+    sendSummary.textContent = `${filesToSend.length} files • ${(
+      total /
+      1024 /
+      1024
+    ).toFixed(1)} MB`;
 
-    filesToSend.forEach(f => totalBytes += f.size);
-    sendSummary.textContent = `${filesToSend.length} files • ${(totalBytes/1024/1024).toFixed(1)} MB`;
-
-    filesToSend.forEach(f => {
+    filesToSend.forEach((f) => {
       const tr = document.createElement("tr");
       tr.id = `send-${f.name}`;
       tr.innerHTML = `
-        <td>${f.name}</td>
-        <td>${(f.size/1024/1024).toFixed(1)} MB</td>
-        <td class="pct">0%</td>
+        <td><i class="fa-solid fa-file"></i> ${f.name}</td>
+        <td>${(f.size / 1024 / 1024).toFixed(1)} MB</td>
+        <td><div class="progress"><span></span></div></td>
       `;
       sendList.appendChild(tr);
     });
   }
 
   createBtn.onclick = async () => {
-    if (!filesToSend.length) return alert("Select files first");
+    if (filesToSend.length === 0) return alert("Select files first");
+
     isSender = true;
     roomId = genRoomId();
     roomIdSpan.textContent = roomId;
     roomBox.classList.remove("hidden");
 
-    const url = `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomId}`;
+    const url = `${location.origin}${location.pathname.replace(
+      "send.html",
+      "receive.html"
+    )}?room=${roomId}`;
     document.getElementById("qr").innerHTML = "";
     new QRCode(document.getElementById("qr"), url);
 
     await createPeer();
     ws.send(JSON.stringify({ type: "join", roomId }));
-    log("Waiting for receiver...");
+    log("Room created. Waiting...");
   };
 
   copyBtn.onclick = () => navigator.clipboard.writeText(roomIdSpan.textContent);
-  copyLinkBtn.onclick = () => navigator.clipboard.writeText(
-    `${location.origin}${location.pathname.replace("send.html","receive.html")}?room=${roomIdSpan.textContent}`
-  );
-}
 
-// ---------- RECEIVE ----------
-if (isRecvPage) {
-  const getCode = () => Array.from(otpInputs).map(i=>i.value).join("").toUpperCase();
-
-  joinBtn.onclick = () => {
-    roomId = getCode();
-    if (roomId.length !== otpInputs.length) return;
-    ws.send(JSON.stringify({ type: "join", roomId }));
-    log("Joining...");
+  copyLinkBtn.onclick = () => {
+    const link = `${location.origin}${location.pathname.replace(
+      "send.html",
+      "receive.html"
+    )}?room=${roomIdSpan.textContent}`;
+    navigator.clipboard.writeText(link);
   };
 }
 
-// ---------- Signaling ----------
+// ---------- RECEIVE (OTP) ----------
+// ---------- RECEIVE (OTP) ----------
+let pendingJoinCode = null;
+
+if (isRecvPage) {
+  const otpWrap = document.getElementById("otpWrap");
+
+  function getOTPCode() {
+    let code = "";
+    otpInputs.forEach((i) => (code += i.value.toUpperCase()));
+    return code;
+  }
+
+  function shakeOTP() {
+    otpWrap.classList.remove("shake");
+    // force reflow so animation restarts every time
+    void otpWrap.offsetWidth;
+    otpWrap.classList.add("shake");
+  }
+
+  // Input & navigation
+  otpInputs.forEach((input, idx) => {
+    input.addEventListener("input", () => {
+      let val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+      // ✅ Keep only ONE character
+      if (val.length > 1) val = val.slice(-1);
+      input.value = val;
+
+      if (val && idx < otpInputs.length - 1) {
+        otpInputs[idx + 1].focus();
+      }
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace") {
+        if (!input.value && idx > 0) {
+          otpInputs[idx - 1].focus();
+        } else {
+          input.value = "";
+        }
+      }
+    });
+  });
+
+  // ✅ Paste support (Ctrl+V)
+  otpWrap.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData)
+      .getData("text")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+
+    otpInputs.forEach((inp, i) => {
+      inp.value = text[i] || "";
+    });
+
+    if (text.length >= otpInputs.length) {
+      joinBtn.click();
+    }
+  });
+
+  function tryJoin() {
+    const code = getOTPCode();
+
+    if (code.length !== otpInputs.length) {
+      shakeOTP();
+      return;
+    }
+
+    roomId = code;
+
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "join", roomId }));
+      log("Joining room...");
+    } else {
+      pendingJoinCode = roomId;
+      log("Waiting for connection...");
+    }
+  }
+
+  joinBtn.onclick = () => {
+    tryJoin();
+  };
+
+  // ✅ Auto-fill from QR
+  const params = new URLSearchParams(location.search);
+  if (params.get("room")) {
+    const code = params.get("room").toUpperCase();
+    if (code.length === otpInputs.length) {
+      otpInputs.forEach((inp, i) => (inp.value = code[i] || ""));
+      pendingJoinCode = code;
+    }
+  }
+
+  // Download all
+  downloadAllBtn.onclick = async () => {
+    const zip = new JSZip();
+    recvFiles.forEach((f) => zip.file(f.name, f.blob));
+    const blob = await zip.generateAsync({ type: "blob" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pingIT.zip";
+    a.click();
+  };
+}
+
+// ---------- WebSocket signaling ----------
 ws.onmessage = async (msg) => {
   const data = JSON.parse(msg.data);
   if (data.roomId !== roomId) return;
 
-  if (data.type === "join" && isSender) await makeOffer();
+  if (data.type === "join" && isSender) {
+    log("Receiver connected. Creating offer...");
+    await makeOffer();
+  }
 
   if (data.type === "offer" && !isSender) {
+    log("Offer received. Connecting to sender...");
+
     await createPeer();
     await pc.setRemoteDescription(data.offer);
     const answer = await pc.createAnswer();
@@ -152,14 +279,19 @@ ws.onmessage = async (msg) => {
     ws.send(JSON.stringify({ type: "answer", answer, roomId }));
   }
 
-  if (data.type === "answer" && isSender) await pc.setRemoteDescription(data.answer);
-  if (data.type === "ice" && pc) await pc.addIceCandidate(data.candidate);
+  if (data.type === "answer" && isSender) {
+    await pc.setRemoteDescription(data.answer);
+  }
+
+  if (data.type === "ice" && pc) {
+    await pc.addIceCandidate(data.candidate);
+  }
 };
 
 // ---------- WebRTC ----------
-async function createPeer() {
+async function createPeer() { // Paste your STUN and TURN server URLs and credentials below
   pc = new RTCPeerConnection({
-    ceServers: [
+    iceServers: [
       { urls: "stun:stun.relay.metered.ca:80" },
       { urls: "turn:global.relay.metered.ca:80", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D" },
       { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "3925f5a71308b78d75a1f5fd", credential: "kWUIj7VlrSk9/9+D" },
@@ -168,11 +300,16 @@ async function createPeer() {
     ],
   });
 
-  pc.onicecandidate = e => e.candidate && ws.send(JSON.stringify({ type:"ice", candidate:e.candidate, roomId }));
+  pc.onicecandidate = (e) => {
+    if (e.candidate) {
+      ws.send(JSON.stringify({ type: "ice", candidate: e.candidate, roomId }));
+    }
+  };
 
-  pc.ondatachannel = e => {
+  pc.ondatachannel = (e) => {
     channel = e.channel;
     channel.binaryType = "arraybuffer";
+    log("Connected to sender. Waiting for files...");
     setupReceiver();
   };
 }
@@ -180,124 +317,149 @@ async function createPeer() {
 async function makeOffer() {
   channel = pc.createDataChannel("file");
   channel.binaryType = "arraybuffer";
-  channel.onopen = () => sendFiles();
+  channel.onopen = () => {
+    log("Connected to receiver. Starting transfer...");
+    sendFiles();
+  };
 
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
-  ws.send(JSON.stringify({ type:"offer", offer, roomId }));
+  ws.send(JSON.stringify({ type: "offer", offer, roomId }));
 }
 
 // ---------- Send ----------
 async function sendFiles() {
-  startTime = Date.now();
-  for (const f of filesToSend) {
-    channel.send(JSON.stringify({ meta:true, name:f.name, size:f.size }));
-    await sendOneFile(f);
+  for (const file of filesToSend) {
+    log(`Sending: ${file.name}`);
+    channel.send(
+      JSON.stringify({ meta: true, name: file.name, size: file.size })
+    );
+    await sendOneFile(file);
   }
-  channel.send(JSON.stringify({ done:true }));
+  channel.send(JSON.stringify({ done: true }));
   log("All files sent");
 }
 
-function updateOverall() {
-  const pct = (transferred / totalBytes) * 100;
-  overallPct.textContent = `${pct.toFixed(0)}%`;
-
-  const secs = (Date.now() - startTime)/1000;
-  const speed = transferred / secs;
-  const eta = speed ? (totalBytes - transferred)/speed : 0;
-
-  speedInfo.textContent =
-    `${(speed/1024/1024).toFixed(2)} MB/s • ETA: ${Math.max(0,eta).toFixed(1)}s`;
-}
-
 function sendOneFile(file) {
-  return new Promise(resolve => {
-    const CHUNK = 32*1024;
+  return new Promise((resolve) => {
+    const CHUNK = 32 * 1024; // smaller chunks = safer
     let offset = 0;
     const reader = new FileReader();
 
-    reader.onload = e => {
-      channel.send(e.target.result);
-      offset += e.target.result.byteLength;
-      transferred += e.target.result.byteLength;
+    const HIGH_WATER_MARK = 8 * 1024 * 1024; // 8 MB buffer limit
 
-      const pct = (offset/file.size)*100;
-      const cell = document.querySelector(`#send-${CSS.escape(file.name)} .pct`);
-      if (cell) cell.textContent = `${pct.toFixed(0)}%`;
+    channel.bufferedAmountLowThreshold = 2 * 1024 * 1024; // resume at 2 MB
 
-      updateOverall();
+    function readSlice(o) {
+      reader.readAsArrayBuffer(file.slice(o, o + CHUNK));
+    }
 
-      if (offset < file.size) reader.readAsArrayBuffer(file.slice(offset, offset+CHUNK));
-      else {
-        cell.innerHTML = `<span class="done"><i class="fa-solid fa-check"></i> Done</span>`;
-        resolve();
+    reader.onload = (e) => {
+      // ✅ If buffer is full, wait
+      if (channel.bufferedAmount > HIGH_WATER_MARK) {
+        channel.onbufferedamountlow = () => {
+          channel.onbufferedamountlow = null;
+          channel.send(e.target.result);
+          afterSend(e.target.result.byteLength);
+        };
+      } else {
+        channel.send(e.target.result);
+        afterSend(e.target.result.byteLength);
       }
     };
 
-    reader.readAsArrayBuffer(file.slice(0, CHUNK));
+    function afterSend(sentBytes) {
+      offset += sentBytes;
+
+      const pct = (offset / file.size) * 100;
+      const bar = document.querySelector(`#send-${CSS.escape(file.name)} span`);
+      if (bar) bar.style.width = pct + "%";
+
+      if (offset < file.size) readSlice(offset);
+      else resolve();
+    }
+
+    readSlice(0);
   });
 }
 
 // ---------- Receive ----------
 function setupReceiver() {
-  let currentFile = null, buffers=[], received=0, row=null;
-  totalBytes = 0;
-  transferred = 0;
-  startTime = Date.now();
+  let currentFile = null;
+  let buffers = [];
+  let received = 0;
+  let currentRow = null;
 
-  channel.onmessage = e => {
+  channel.onmessage = (e) => {
+    // ----- Control messages -----
     if (typeof e.data === "string") {
       const msg = JSON.parse(e.data);
 
+      // 📄 New file incoming
       if (msg.meta) {
         currentFile = msg;
         buffers = [];
         received = 0;
-        totalBytes += msg.size;
 
-        overallBox.classList.remove("hidden");
+        log(`Receiving: ${msg.name}`);
         recvTableWrap.classList.remove("hidden");
         recvSummary.classList.remove("hidden");
 
-        row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${msg.name}</td>
-          <td>${(msg.size/1024/1024).toFixed(1)} MB</td>
-          <td class="pct">0%</td>
+        // ✅ Create row immediately with progress bar
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><i class="fa-solid fa-file"></i> ${msg.name}</td>
+          <td>${(msg.size / 1024 / 1024).toFixed(1)} MB</td>
+          <td><div class="progress"><span></span></div></td>
         `;
-        recvList.appendChild(row);
+        recvList.appendChild(tr);
+        currentRow = tr;
+
         return;
       }
 
+      // ✅ All files done
       if (msg.done) {
         log("All files received");
+        recvSummary.textContent = `${recvFiles.length} files received`;
         return;
       }
+
       return;
     }
 
+    // ----- Binary chunks -----
     buffers.push(e.data);
     received += e.data.byteLength;
-    transferred += e.data.byteLength;
 
-    const pct = (received/currentFile.size)*100;
-    row.querySelector(".pct").textContent = `${pct.toFixed(0)}%`;
-    updateOverall();
+    // ✅ Update progress live
+    if (currentFile && currentRow) {
+      const pct = (received / currentFile.size) * 100;
+      const bar = currentRow.querySelector(".progress span");
+      if (bar) bar.style.width = pct + "%";
+    }
 
-    if (received >= currentFile.size) {
+    // ✅ File completed
+    if (currentFile && received >= currentFile.size) {
       const blob = new Blob(buffers);
       const url = URL.createObjectURL(blob);
+
       recvFiles.push({ name: currentFile.name, blob });
 
-      row.querySelector(".pct").innerHTML =
-        `<a href="${url}" download="${currentFile.name}" class="done">
-           <i class="fa-solid fa-check"></i> Download
-         </a>`;
+      // Replace progress with download button
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = currentFile.name;
+      a.innerHTML = `<i class="fa-solid fa-download"></i> Download`;
+
+      currentRow.children[2].innerHTML = "";
+      currentRow.children[2].appendChild(a);
 
       recvSummary.textContent = `${recvFiles.length} files received`;
       downloadAllBtn.classList.remove("hidden");
 
       currentFile = null;
+      currentRow = null;
     }
   };
 }
