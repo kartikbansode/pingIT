@@ -1,62 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>pingIT – Receive</title>
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pingIT - Receive</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
 </head>
+
 <body>
+    <header>
+        <div class="logo">pingIT</div>
+        <div class="subtitle">Receive Files</div>
+    </header>
 
-<header>
-  <button class="backBtn" onclick="location.href='index.html'">
-    <i class="fa-solid fa-angle-left"></i> Back
-  </button>
-  <div class="logo">pingIT</div>
-</header>
+    <main class="container">
+        <section class="panel">
 
-<main class="container">
-  <section class="panel">
-    <h2><i class="fa-solid fa-download"></i> Receive Files</h2>
+            <button class="backBtn" onclick="history.back()">
+                <i class="fa-solid fa-angle-left"></i>
+                <span>Back</span>
+            </button>
+            <div class="otp-wrap" id="otpWrap">
+                <input class="otp" maxlength="1" />
+                <input class="otp" maxlength="1" />
+                <input class="otp" maxlength="1" />
+                <input class="otp" maxlength="1" />
+                <input class="otp" maxlength="1" />
+                <input class="otp" maxlength="1" />
+            </div>
 
-    <div id="otpWrap" class="otp-wrap">
-      <input class="otp" maxlength="1" />
-      <input class="otp" maxlength="1" />
-      <input class="otp" maxlength="1" />
-      <input class="otp" maxlength="1" />
-      <input class="otp" maxlength="1" />
-      <input class="otp" maxlength="1" />
-    </div>
+            <button id="joinBtn" disabled class="primary big-action">
+                <i class="fa-solid fa-link"></i> Join Room
+            </button>
 
-    <button id="joinBtn" class="primary big-action" disabled>
-      <i class="fa-solid fa-link"></i> Join Room
-    </button>
 
-    <div id="overallBox" class="overall hidden">
-      <div id="overallPct">0%</div>
-      <div id="speedInfo">0 MB/s • ETA: --</div>
-    </div>
+            <div class="summary hidden" id="recvSummary"></div>
 
-    <table class="file-table hidden" id="recvTableWrap">
-      <thead>
-        <tr><th>Name</th><th>Size</th><th>Status</th></tr>
-      </thead>
-      <tbody id="recvList"></tbody>
-    </table>
+            <div class="table-wrap hidden" id="recvTableWrap">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recvList"></tbody>
+                </table>
+            </div>
 
-    <div id="recvSummary" class="summary hidden"></div>
-    <button id="downloadAllBtn" class="secondary hidden">
-      <i class="fa-solid fa-download"></i> Download All
-    </button>
-  </section>
-</main>
+            <button id="downloadAllBtn" class="hidden secondary">
+                <i class="fa-solid fa-download"></i> Download All
+            </button>
 
-<footer>
-  <div id="status">Connecting...Please Wait</div>
-</footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="app.js"></script>
+        </section>
+    </main>
+
+    <footer>
+        <div id="status">Connecting...</div>
+    </footer>
+    <p class="terms1">By using pingIT you agree to Terms and Conditions</p>
+    <a href="terms.html" class="terms">Terms and Conditions</a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="app.js"></script>
 </body>
+
 </html>
