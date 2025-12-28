@@ -7,24 +7,27 @@ body {
   font-family: system-ui, Arial, sans-serif;
   background: #0b1020;
   color: #e5e7eb;
+  line-height: 1.5; /* Improved readability */
 }
 
 /* Header */
 header {
   background: #020617;
-  padding: 16px;
+  padding: 20px 16px; /* Slightly more padding for breathing room */
   border-bottom: 1px solid #1e293b;
   text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
 }
 
 .logo {
-  font-size: 24px;
+  font-size: 28px; /* Slightly larger for prominence */
   font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .subtitle {
   color: #94a3b8;
-  font-size: 14px;
+  font-size: 16px; /* Slightly larger for better readability */
 }
 
 /* Home */
@@ -33,20 +36,33 @@ header {
   display: flex;
   margin: auto;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px; /* Increased gap for better spacing */
   justify-content: center;
   align-items: center;
-
+  padding: 20px; /* Added padding for mobile edges */
 }
 
 .home-btn {
-  width: 300px;
+  width: 320px; /* Slightly wider for better presence */
   max-width: 90%;
-  padding: 22px;
+  padding: 24px;
   font-size: 26px;
   border-radius: 16px;
   border: none;
   cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8); /* Subtle gradient for professionalism */
+  color: white;
+  transition: all 0.3s ease; /* Smoother transition */
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); /* Professional shadow */
+}
+
+.home-btn:hover {
+  transform: translateY(-2px); /* Subtle lift on hover */
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.home-btn:active {
+  transform: translateY(0);
 }
 
 /* Layout */
@@ -59,9 +75,10 @@ header {
 .panel {
   background: #020617;
   border: 1px solid #1e293b;
-  border-radius: 14px;
-  padding: 16px;
-  margin-top: 12px;
+  border-radius: 16px; /* Slightly more rounded for modern look */
+  padding: 20px; /* Increased padding */
+  margin-top: 16px; /* More margin for separation */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Enhanced shadow for depth */
 }
 
 .backBtn {
@@ -73,17 +90,19 @@ header {
   border: 1px solid #1e293b;
   color: #e5e7eb;
   font-size: 14px;
-  padding: 6px 14px;
-  border-radius: 9px;
+  padding: 8px 16px; /* More padding */
+  border-radius: 10px;
   cursor: pointer;
-  margin-bottom: 12px;
+  margin-bottom: 16px; /* More margin */
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .backBtn:hover {
   background: #1e293b;
   border-color: #334155;
   transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .backBtn:active {
@@ -99,79 +118,105 @@ header {
   font-weight: 500;
 }
 
-
 /* Inputs & Buttons */
 button,
 input {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 14px; /* Slightly more padding */
+  border-radius: 12px; /* More rounded */
   border: none;
-  font-size: 15px;
+  font-size: 16px; /* Larger for better touch targets */
+  transition: all 0.2s ease;
 }
 
 input {
   background: #020617;
   color: #e5e7eb;
   border: 1px solid #1e293b;
-  margin-bottom: 8px;
+  margin-bottom: 12px; /* More margin */
+}
+
+input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); /* Focus ring for accessibility */
 }
 
 button {
-  margin-top: 8px;
+  margin-top: 12px; /* More margin */
   cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .primary {
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white;
 }
 
+.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
 .secondary {
-  background: #334155;
+  background: linear-gradient(135deg, #334155, #475569);
   color: white;
+}
+
+.secondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(51, 65, 85, 0.3);
 }
 
 button:disabled {
   background: #1e293b;
   cursor: not-allowed;
+  box-shadow: none;
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 
 .big-action {
   font-size: 18px;
-  padding: 14px;
+  padding: 16px;
 }
 
 /* Drop zone */
 .drop-zone {
   border: 2px dashed #334155;
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 14px;
+  padding: 24px; /* More padding */
   text-align: center;
   color: #cbd5f5;
-  margin-bottom: 8px;
-  transition: 0.2s ease;
+  margin-bottom: 12px; /* More margin */
+  transition: 0.3s ease;
+  background: rgba(15, 23, 42, 0.5); /* Subtle background */
 }
 
 .drop-zone.drag {
   background: #0f172a;
   border-color: #22c55e;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
 }
 
 /* Summary */
 .summary {
-  font-size: 13px;
+  font-size: 14px; /* Slightly larger */
   color: #94a3b8;
-  margin: 6px 0;
+  margin: 8px 0;
   text-align: center;
-  justify-content: center;
 }
 
 /* Table */
 .table-wrap {
   max-height: 240px;
   overflow-y: auto;
-  margin-top: 6px;
+  margin-top: 8px;
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.5); /* Subtle background */
 }
 
 .file-table {
@@ -183,96 +228,95 @@ button:disabled {
 .file-table th,
 .file-table td {
   border-bottom: 1px solid #1e293b;
-  padding: 6px;
+  padding: 8px; /* More padding */
   text-align: left;
   word-break: break-word;
 }
 
 .file-table th {
   color: #94a3b8;
+  font-weight: 600;
 }
 
 /* Progress bar */
 .progress {
-  height: 6px;
+  height: 8px; /* Slightly taller */
   background: #1e293b;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
+  margin: 8px 0;
 }
 
 .progress span {
   display: block;
   height: 100%;
-  background: #22c55e;
+  background: linear-gradient(90deg, #22c55e, #16a34a); /* Gradient for progress */
   width: 0%;
+  transition: width 0.3s ease;
 }
 
 /* Room box */
 .room-box {
-  margin-top: 12px;
+  margin-top: 16px; /* More margin */
   background: #0f172a;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 20px; /* More padding */
+  border-radius: 14px;
   text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .room-code {
-  font-size: 28px;
-  letter-spacing: 3px;
+  font-size: 32px; /* Larger */
+  letter-spacing: 4px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  color: #e5e7eb;
 }
 
 .room-actions {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px; /* More gap */
+  margin-bottom: 12px;
 }
 
 .room-actions button {
   flex: 1;
 }
 
-/* QR */
+/* QR Code Box - Enhanced */
 .qr-box {
   display: flex;
   justify-content: center;
+  align-items: center;
+  margin: 20px 0; /* Neat margins */
+  padding: 16px; /* Padding around the box */
+  background: #020617; /* Matching panel background */
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); /* Professional shadow */
 }
 
 .qr-box img {
   width: 140px;
   height: 140px;
+  border-radius: 8px; /* Slight rounding for the image */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Shadow on the QR itself */
 }
 
 /* Footer */
 footer {
   text-align: center;
-  padding: 12px;
+  padding: 16px; /* More padding */
   color: #93c5fd;
   font-size: 14px;
+  background: #020617;
+  border-top: 1px solid #1e293b;
 }
 
 /* Utility */
 .hidden {
   display: none !important;
 }
-
-/* Mobile */
-@media (max-width: 600px) {
-  .home-btn {
-    font-size: 22px;
-    padding: 18px;
-  }
-
-  .room-code {
-    font-size: 24px;
-  }
-
-  .panel {
-    padding: 12px;
-  }
-}
-
 
 /* Font Awesome spacing */
 i {
@@ -289,7 +333,7 @@ button {
 
 /* Home buttons */
 .home-btn i {
-  font-size: 22px;
+  font-size: 24px; /* Slightly larger */
 }
 
 /* Back icon tighter */
@@ -308,51 +352,36 @@ a i {
   margin-right: 6px;
 }
 
-/* Professional shadows */
-.panel,
-.room-box {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-}
+/* Professional shadows - already applied above */
 
-/* Subtle hover for actions */
-button:hover:not(:disabled) {
-  filter: brightness(1.05);
-}
-
+/* Subtle hover for actions - enhanced above */
 
 /* OTP Room Code Input */
 .otp-wrap {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin: 12px 0;
+  gap: 12px; /* More gap */
+  margin: 16px 0;
 }
 
 .otp {
-  width: 44px;
-  height: 54px;
+  width: 48px; /* Slightly wider */
+  height: 58px; /* Slightly taller */
   text-align: center;
-  font-size: 22px;
+  font-size: 24px; /* Larger */
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #1e293b;
   background: #020617;
   color: #e5e7eb;
   outline: none;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .otp:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
-}
-
-@media (max-width: 600px) {
-  .otp {
-    width: 38px;
-    height: 48px;
-    font-size: 20px;
-  }
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 
 /* Shake animation for wrong OTP */
@@ -360,27 +389,21 @@ button:hover:not(:disabled) {
   0% {
     transform: translateX(0);
   }
-
   20% {
     transform: translateX(-6px);
   }
-
   40% {
     transform: translateX(6px);
   }
-
   60% {
     transform: translateX(-6px);
   }
-
   80% {
     transform: translateX(6px);
   }
-
   100% {
     transform: translateX(0);
   }
-
 }
 
 .otp-wrap.shake {
@@ -396,17 +419,155 @@ button:hover:not(:disabled) {
   font-size: 14px;
   text-decoration: underline;
   text-align: center;
-  justify-content: center;
   display: block;
-  margin: auto;
-  margin-bottom: 25px;
+  margin: 20px auto 25px; /* Neat margins */
 }
 
 .terms1 {
   color: #94a3b8;
   font-size: 14px;
   text-align: center;
-  justify-content: center;
   display: block;
-  margin: auto;
+  margin: 20px auto; /* Neat margins */
+}
+
+/* Responsive Design */
+
+/* Mobile (up to 600px) */
+@media (max-width: 600px) {
+  .home-btn {
+    font-size: 22px;
+    padding: 20px;
+  }
+
+  .room-code {
+    font-size: 26px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .otp {
+    width: 40px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .container {
+    padding: 12px;
+  }
+
+  .table-wrap {
+    max-height: 200px;
+  }
+
+  .file-table {
+    font-size: 13px;
+  }
+
+  .qr-box img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .qr-box {
+    padding: 12px;
+  }
+}
+
+/* Tablet (601px to 1024px) */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .container {
+    max-width: 800px;
+    padding: 20px;
+  }
+
+  .home-btn {
+    width: 350px;
+    font-size: 28px;
+    padding: 24px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .room-code {
+    font-size: 32px;
+  }
+
+  .qr-box img {
+    width: 160px;
+    height: 160px;
+  }
+
+  .table-wrap {
+    max-height: 300px;
+  }
+
+  .file-table {
+    font-size: 15px;
+  }
+
+  .otp {
+    width: 50px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  .qr-box {
+    padding: 18px;
+  }
+}
+
+/* PC and larger screens (1025px+) */
+@media (min-width: 1025px) {
+  .container {
+    max-width: 1000px;
+    padding: 24px;
+  }
+
+  .home-btn {
+    width: 400px;
+    font-size: 30px;
+    padding: 26px;
+  }
+
+  .panel {
+    padding: 24px;
+  }
+
+  .room-code {
+    font-size: 36px;
+  }
+
+  .qr-box img {
+    width: 180px;
+    height: 180px;
+  }
+
+  .table-wrap {
+    max-height: 350px;
+  }
+
+  .file-table {
+    font-size: 16px;
+  }
+
+  .otp {
+    width: 55px;
+    height: 65px;
+    font-size: 26px;
+  }
+
+  .qr-box {
+    padding: 20px;
+  }
+
+  /* For very large screens, center the home section more */
+  .home {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 }
