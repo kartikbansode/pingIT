@@ -7,9 +7,18 @@ This is a personal project created for learning and demonstration purposes.
 
 ---
 
->**Version:** 1.0
+>**Version:** 1.1
 >
->**Release Date:** December 24, 2025  
+>**Release Date:** December 28, 2025  
+
+---
+
+## Whats new in v1.1
+
+1. Improved Transfer Speed
+2. Added animations
+3. Improved overall website style
+4. Bug fix
 
 ---
 
@@ -35,17 +44,6 @@ pingIT uses:
 - Files are never stored or passed through the server
 
 Once connected, data flows directly from sender to receiver.
-
----
-
-### ⚠️Usage
-**In order to use pingIT..
-Paste your Credentials in respected places given below**
-
-| File                                   | Source                                                        | Line no. to paste   |
-| ---------------------------------------| ------------------------------------------------------------- | ------------------- |
-| `frontend/app.js`                      | Render url from (https://render.com/)                         | 3                   |
-| `frontend/app.js`                      | Turn urls and credentials from (https://www.metered.ca/)      | 295 to 315          |
 
 ---
 
