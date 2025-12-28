@@ -410,3 +410,47 @@ button:hover:not(:disabled) {
   display: block;
   margin: auto;
 }
+
+
+
+/* Overall progress */
+.overall-wrap {
+  margin: 10px 0;
+}
+
+.overall-label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.overall-bar {
+  height: 10px;
+  background: #1e293b;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.overall-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  transition: width 0.1s linear;
+}
+
+/* Per-file bar */
+.file-bar {
+  height: 6px;
+  background: #1e293b;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.file-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: #60a5fa;
+  transition: width 0.1s linear;
+}
