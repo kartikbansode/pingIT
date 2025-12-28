@@ -1,66 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>pingIT – Send</title>
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pingIT - Send</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
 </head>
+
 <body>
+    <header>
+        <div class="logo">pingIT</div>
+        <div class="subtitle">Send Files</div>
+    </header>
 
-<header>
-  <button class="backBtn" onclick="location.href='index.html'">
-    <i class="fa-solid fa-angle-left"></i> Back
-  </button>
-  <div class="logo">pingIT</div>
-</header>
+    <main class="container">
+        <section class="panel">
 
-<main class="container">
-  <section class="panel">
-    <h2><i class="fa-solid fa-arrow-up-from-bracket"></i> Send Files</h2>
+            <button class="backBtn" onclick="history.back()">
+                <i class="fa-solid fa-angle-left"></i>
+                <span>Back</span>
+            </button>
 
-    <div id="dropZone" class="drop-zone">
-      <i class="fa-solid fa-file"></i>
-      <p>Drag & drop files here</p>
-      <button id="browseBtn" type="button">Browse</button>
-      <input type="file" id="fileInput" multiple hidden />
-    </div>
+            <div id="dropZone" class="drop-zone">
+                <div>Drag & drop files here</div>
+                <button id="browseBtn" type="button">
+                    <i class="fa-solid fa-plus"></i> Browse Files
+                </button>
 
-    <div id="sendSummary" class="summary hidden"></div>
+                <input type="file" id="fileInput" multiple hidden />
+            </div>
 
-    <div id="overallBox" class="overall hidden">
-      <div id="overallPct">0%</div>
-      <div id="speedInfo">0 MB/s • ETA: --</div>
-    </div>
+            <div class="summary hidden" id="sendSummary"></div>
 
-    <table class="file-table hidden" id="sendTableWrap">
-      <thead>
-        <tr><th>Name</th><th>Size</th><th>Status</th></tr>
-      </thead>
-      <tbody id="sendList"></tbody>
-    </table>
+            <div class="table-wrap hidden" id="sendTableWrap">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sendList"></tbody>
+                </table>
+            </div>
 
-    <button id="createBtn" class="primary big-action" disabled>
-      <i class="fa-solid fa-share"></i> Create Room
-    </button>
+            <button id="createBtn" disabled class="primary big-action">
+                <i class="fa-solid fa-share"></i> Create Room
+            </button>
 
-    <div id="roomBox" class="room-box hidden">
-      <div class="room-code" id="roomId"></div>
-      <div class="room-actions">
-        <button id="copyBtn"><i class="fa-solid fa-copy"></i> Copy Code</button>
-        <button id="copyLinkBtn"><i class="fa-solid fa-link"></i> Copy Link</button>
-      </div>
-      <div id="qr" class="qr-box"></div>
-    </div>
-  </section>
-</main>
 
-<footer>
-  <div id="status">Connecting...Please Wait</div>
-</footer>
+            <div id="roomBox" class="room-box hidden">
+                <div class="room-code" id="roomId"></div>
+                <div class="room-actions">
+                    <button id="copyBtn">
+                        <i class="fa-solid fa-link"></i> Copy Code
+                    </button>
+                    <button id="copyLinkBtn">
+                        <i class="fa-solid fa-link"></i> Copy Link
+                    </button>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="app.js"></script>
+                </div>
+                <div id="qr" class="qr-box"></div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer>
+        <div id="status">Connecting...</div>
+    </footer>
+    <p class="terms1">By using pingIT you agree to Terms and Conditions</p>
+    <a href="terms.html" class="terms">Terms and Conditions</a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="app.js"></script>
 </body>
+
 </html>
